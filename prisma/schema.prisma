@@ -1,0 +1,189 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("POSTGRES_PRISMA_URL") // Uses connection pooling
+  directUrl = env("POSTGRES_URL_NON_POOLING") // Uses direct connection
+}
+
+// 1. Settings: Configuración global
+model Settings {
+  id                String  @id @default(uuid())
+  
+  // Datos Empresa Emisora
+  companyName       String
+  commercialName    String? // Nombre comercial (opcional)
+  companyAddress    String
+  companyEmail      String?
+  companyTaxId      String? // CIF/NIF/EIN
+  taxIdLabel        String  @default("EIN") // "EIN" | "NIF" // CIF/NIF/EIN
+
+  // Datos Bancarios
+  bankBeneficiary   String?
+  bankIban          String?
+  bankName          String?
+  bankAddress       String?
+  bankSwift         String?
+
+  // Configuración Factura
+  invoicePrefix     String  @default("INV-")
+  invoiceNextNumber Int     @default(1)
+  
+  // Impuestos (IVA / IRPF)
+  taxEnabled        Boolean @default(false)
+  taxRate           Decimal @default(21)
+  withholdingEnabled Boolean @default(false)
+  withholdingRate   Decimal @default(15)
+
+  // Configuración Email
+  emailSmtpHost     String?
+  emailSmtpPort     Int?
+  emailSmtpUser     String?
+  emailSmtpPass     String?
+  emailSubject      String  @default("Factura %numfactura% - %nombreempresa%")
+  emailBodyTemplate String? // Plantilla base 
+
+  // Ruta Local
+  localSavePath     String  @default("C:/Facturas")
+  
+  // Simulation / Dev
+  simulatedDate     DateTime?
+  yearlyGoal        Decimal   @default(100000)
+  isAdminMode       Boolean   @default(false)
+
+  updatedAt         DateTime @updatedAt
+
+  companies         Company[]
+  services          Service[]
+  serviceTemplates  ServiceTemplate[]
+  invoices          Invoice[]
+}
+
+// 2. Company (Clientes)
+model Company {
+  id              String    @id @default(uuid())
+  name            String    // Nombre interno / Comercial
+  businessName    String    // Razón Social
+  taxId           String    // CIF/NIF (Unique?)
+  address         String?
+  billingEmail    String    // Campo clave para emails
+  
+  contacts        Contact[]
+  services        Service[]
+  invoices        Invoice[]
+
+  // Multi-tenancy
+  settingsId      String    @default("default") // Temporary default for migration
+  settings        Settings  @relation(fields: [settingsId], references: [id])
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+// 3. Contact (Personas de contacto)
+model Contact {
+  id        String  @id @default(uuid())
+  name      String
+  phone     String?
+  email     String?
+  role      String? // Cargo
+  
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+}
+
+// 4. Service (Servicios a facturar)
+model Service {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  price       Decimal
+  discount    Decimal  @default(0)
+  
+  // Recurrencia
+  type        String   @default("PUNTUAL") // "PUNTUAL" | "RECURRENTE"
+  isActive    Boolean  @default(true)      // Para dar de baja servicios recurrentes
+  
+  // Última vez que se facturó este servicio (para filtrar en el dashboard)
+  lastBilledAt DateTime?
+
+  // Periodo de validez
+  startDate   DateTime @default(now())
+  endDate     DateTime?
+
+  companyId   String
+  company     Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  // Categorización
+  serviceTemplateId String?
+  serviceTemplate   ServiceTemplate? @relation(fields: [serviceTemplateId], references: [id])
+
+  // Multi-tenancy
+  settingsId      String    @default("default")
+  settings        Settings  @relation(fields: [settingsId], references: [id])
+}
+
+model ServiceTemplate {
+  id        String   @id @default(uuid())
+  name      String
+  createdAt DateTime @default(now())
+  
+  services  Service[]
+
+  // Multi-tenancy
+  settingsId      String    @default("default")
+  settings        Settings  @relation(fields: [settingsId], references: [id])
+
+  @@unique([name, settingsId])
+}
+
+// 5. Invoice (Facturas emitidas)
+model Invoice {
+  id            String   @id @default(uuid())
+  number        String   // Removed @unique because it's unique per tenant now, handled by logic or composite key if needed
+  issueDate     DateTime @default(now())
+  
+  status        String   @default("DRAFT") // "DRAFT", "SENT", "PAID"
+  
+  // Snapshot de datos en el momento de la factura
+  subtotal      Decimal   @default(0) // Base imponible
+  taxRate       Decimal   @default(0)
+  taxAmount     Decimal   @default(0)
+  withholdingRate Decimal @default(0)
+  withholdingAmount Decimal @default(0)
+  totalAmount   Decimal   // Importe final a cobrar (Base + IVA - IRPF)
+  
+  // Relación con Company
+  companyId     String
+  company       Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  
+  // Snapshot de los items (Servicios) para no depender de cambios futuros en la tabla Service
+  // Estructura JSON: [{ description: string, price: number, serviceId?: string }]
+  items         String   // Stored as JSON string is easiest for SQLite/Simple setup
+  
+  pdfPath       String?  // Ruta donde se guardó localmente
+  lastError     String?  // Mensaje de error si el envío falló
+  isArchived    Boolean  @default(false)
+
+  // Multi-tenancy
+  settingsId      String    @default("default")
+  settings        Settings  @relation(fields: [settingsId], references: [id])
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+// 6. User (Autenticación)
+model User {
+  id               String    @id @default(uuid())
+  name             String
+  email            String    @unique
+  password         String
+  resetToken       String?
+  resetTokenExpiry DateTime?
+  
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+}
