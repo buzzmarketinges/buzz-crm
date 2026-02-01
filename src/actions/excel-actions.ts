@@ -84,27 +84,37 @@ export async function importInvoicesFromExcel(formData: FormData) {
                 }
 
                 // Upsert Invoice
-                await prisma.invoice.upsert({
-                    where: { number: String(row.Numero) },
-                    update: {
-                        issueDate: new Date(row.Fecha),
-                        totalAmount: Number(row.Total),
-                        status: row.Estado || 'DRAFT',
-                        isArchived: row.Archivada === 'Si',
-                        companyId: company.id,
-                        // If Items missing, use placeholder
-                        items: row.Items || JSON.stringify([{ description: "Importado desde Excel", price: Number(row.Total) }])
-                    },
-                    create: {
-                        number: String(row.Numero),
-                        issueDate: new Date(row.Fecha),
-                        totalAmount: Number(row.Total),
-                        status: row.Estado || 'DRAFT',
-                        isArchived: row.Archivada === 'Si',
-                        companyId: company.id,
-                        items: row.Items || JSON.stringify([{ description: "Importado desde Excel", price: Number(row.Total) }])
-                    }
+                // Check if invoice exists (Manual "Upsert" logic because 'number' is not unique globally, only per tenant conceptually)
+                // We'll search by number for now. In multi-tenant strict mode, we should match company's tenant too.
+                const existingInvoice = await prisma.invoice.findFirst({
+                    where: { number: String(row.Numero) }
                 })
+
+                if (existingInvoice) {
+                    await prisma.invoice.update({
+                        where: { id: existingInvoice.id },
+                        data: {
+                            issueDate: new Date(row.Fecha),
+                            totalAmount: Number(row.Total),
+                            status: row.Estado || 'DRAFT',
+                            isArchived: row.Archivada === 'Si',
+                            companyId: company.id,
+                            items: row.Items || JSON.stringify([{ description: "Importado desde Excel", price: Number(row.Total) }])
+                        }
+                    })
+                } else {
+                    await prisma.invoice.create({
+                        data: {
+                            number: String(row.Numero),
+                            issueDate: new Date(row.Fecha),
+                            totalAmount: Number(row.Total),
+                            status: row.Estado || 'DRAFT',
+                            isArchived: row.Archivada === 'Si',
+                            companyId: company.id,
+                            items: row.Items || JSON.stringify([{ description: "Importado desde Excel", price: Number(row.Total) }])
+                        }
+                    })
+                }
                 processedCount++
             } catch (err) {
                 console.error(err)
