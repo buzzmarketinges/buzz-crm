@@ -20,6 +20,7 @@ async function main() {
         llc = await prisma.settings.create({
             data: {
                 companyName: 'BuzzMarketing LLC',
+                companyAddress: 'TBD',
                 invoicePrefix: 'INV-LLC-',
                 localSavePath: 'C:/Facturas/LLC'
             }
@@ -32,6 +33,7 @@ async function main() {
         es = await prisma.settings.create({
             data: {
                 companyName: 'BuzzMarketing ES',
+                companyAddress: 'TBD',
                 invoicePrefix: 'INV-ES-',
                 localSavePath: 'C:/Facturas/ES'
             }
