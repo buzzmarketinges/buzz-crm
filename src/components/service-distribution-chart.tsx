@@ -35,6 +35,7 @@ const renderActiveShape = (props: any) => {
 
 export function ServiceDistributionChart({ data }: ServiceDistributionChartProps) {
     const [activeIndex, setActiveIndex] = React.useState<number | undefined>(undefined)
+    const PieAny = Pie as any;
 
     // Calculate Total
     const totalValue = React.useMemo(() => data.reduce((acc, curr) => acc + curr.value, 0), [data])
@@ -57,8 +58,7 @@ export function ServiceDistributionChart({ data }: ServiceDistributionChartProps
                 <div className="h-[250px] w-full relative">
                     <ResponsiveContainer width="100%" height="100%">
                         <PieChart>
-                            {/* @ts-ignore */}
-                            <Pie
+                            <PieAny
                                 activeIndex={activeIndex}
                                 activeShape={renderActiveShape}
                                 data={data}
@@ -80,7 +80,7 @@ export function ServiceDistributionChart({ data }: ServiceDistributionChartProps
                                         className="transition-all duration-300 focus:outline-none"
                                     />
                                 ))}
-                            </Pie>
+                            </PieAny>
                             {/* Center Text Overlay */}
                             <text x="50%" y="50%" textAnchor="middle" dominantBaseline="middle">
                                 <tspan x="50%" dy="-1em" fontSize="14" fill="#64748b" fontWeight="500">
