@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
+import os from "os"
 import prisma from "@/lib/prisma"
 import { InvoicePDF } from "@/components/pdf/InvoicePDF"
 import { renderToStream } from "@react-pdf/renderer"
@@ -70,10 +71,25 @@ export async function POST(req: NextRequest) {
 
         const total = subtotal + taxAmount - withholdingAmount
 
-        const invoiceLocalPathDir = settings.localSavePath || "C:/Facturas"
+        let invoiceLocalPathDir = settings.localSavePath
+
+        // Use project directory/invoices as default if no path is configured
+        if (!invoiceLocalPathDir || invoiceLocalPathDir.trim() === '') {
+            invoiceLocalPathDir = path.join(process.cwd(), 'invoices')
+        }
+
         // Ensure dir exists (recursively)
         if (!fs.existsSync(invoiceLocalPathDir)) {
-            await fs.promises.mkdir(invoiceLocalPathDir, { recursive: true })
+            try {
+                await fs.promises.mkdir(invoiceLocalPathDir, { recursive: true })
+            } catch (err) {
+                console.error(`Failed to create directory: ${invoiceLocalPathDir}`, err)
+                // Fallback to system temp dir (works in Vercel)
+                invoiceLocalPathDir = path.join(os.tmpdir(), 'buzz-crm-invoices')
+                if (!fs.existsSync(invoiceLocalPathDir)) {
+                    await fs.promises.mkdir(invoiceLocalPathDir, { recursive: true })
+                }
+            }
         }
         const filename = `Factura_${invoiceFullNumber}_${company.businessName.replace(/[^a-z0-9]/gi, '_')}.pdf`
         const fullPath = path.join(invoiceLocalPathDir, filename)
