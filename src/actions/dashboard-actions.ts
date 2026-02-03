@@ -123,10 +123,15 @@ export async function getDashboardStats() {
             gross: calcGrowth(monthlyInvoiced.gross, lastMonthInvoiced.gross)
         }
 
-        // 3. Unpaid Percentage (Count based, unaffected by money switch)
-        const totalInvoicesMonth = invoicesThisMonth.length
-        const unpaidInvoicesMonth = invoicesThisMonth.filter(inv => inv.status !== 'PAID').length
-        const unpaidPercentage = totalInvoicesMonth > 0 ? ((unpaidInvoicesMonth / totalInvoicesMonth) * 100) : 0
+        // 3. Unpaid Percentage (Global / All Time) - User Requested Change
+        const totalInvoicesAll = await prisma.invoice.count({
+            where: { settingsId: tenantId, isArchived: false }
+        })
+        const unpaidInvoicesAll = await prisma.invoice.count({
+            where: { settingsId: tenantId, status: { not: 'PAID' }, isArchived: false }
+        }) /* Status is usually DRAFT, SENT, PAID, ERROR. Anything not PAID is unpaid. */
+
+        const unpaidPercentage = totalInvoicesAll > 0 ? ((unpaidInvoicesAll / totalInvoicesAll) * 100) : 0
 
         // 4. Rececnt (Unused, skip deep fetch)
         const recentInvoices = []
@@ -288,7 +293,7 @@ export async function getDashboardStats() {
             monthlyInvoiced,
             monthlyInvoicedGrowth,
             unpaidPercentage,
-            totalInvoicesCount: totalInvoicesMonth,
+            totalInvoicesCount: totalInvoicesAll,
             recentInvoices: [],
             revenueChartData,
             serviceDistributionData,

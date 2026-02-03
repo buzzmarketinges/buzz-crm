@@ -199,13 +199,10 @@ export async function skipPendingInvoice(companyId: string) {
 
             if (isPending) {
                 // Update lastBilledAt to NOW
-                // Use Raw SQL update
-                const newLastBilledAt = now.toISOString()
-                await prisma.$executeRaw`
-                    UPDATE Service 
-                    SET lastBilledAt = ${newLastBilledAt} 
-                    WHERE id = ${service.id}
-                 `
+                await prisma.service.update({
+                    where: { id: service.id },
+                    data: { lastBilledAt: now }
+                })
                 updatedCount++
             }
         }
