@@ -55,7 +55,8 @@ export async function getInvoiceEmailData(invoiceId: string) {
     return {
         subject,
         body,
-        contacts: allContacts
+        contacts: allContacts,
+        companyEmail: settings.companyEmail
     }
 }
 
@@ -63,6 +64,7 @@ interface SendInvoiceOptions {
     recipients: string[]
     subject?: string
     body?: string
+    bcc?: string[]
 }
 
 export async function sendInvoiceEmail(invoiceId: string, options?: SendInvoiceOptions) {
@@ -113,6 +115,7 @@ export async function sendInvoiceEmail(invoiceId: string, options?: SendInvoiceO
         await transporter.sendMail({
             from: `"${settings.companyName}" <${settings.emailSmtpUser}>`, // sender address
             to: recipients.join(", "), // list of receivers
+            bcc: options?.bcc?.join(", "), // blind copy
             subject: subject,
             html: body.replace(/\n/g, '<br>'),
             attachments: [
