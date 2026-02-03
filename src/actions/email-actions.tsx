@@ -106,64 +106,70 @@ export async function sendInvoiceEmail(invoiceId: string, options?: SendInvoiceO
 
     // --- Generate PDF In-Memory ---
 
-    // 1. Prepare Data
-    const items = (typeof invoice.items === 'string' ? JSON.parse(invoice.items) : invoice.items || []) as any[]
-
-    // Load Logo
-    let logoBase64 = undefined;
+    let pdfBuffer: Buffer;
     try {
-        const logoPath = path.join(process.cwd(), 'public', 'invoice-logo.png');
-        if (fs.existsSync(logoPath)) {
-            const logoBuffer = fs.readFileSync(logoPath);
-            logoBase64 = `data:image/png;base64,${logoBuffer.toString('base64')}`;
-        }
-    } catch (e) {
-        console.warn("Failed to load invoice logo", e);
-    }
+        // 1. Prepare Data
+        const items = (typeof invoice.items === 'string' ? JSON.parse(invoice.items) : invoice.items || []) as any[]
 
-    const pdfData = {
-        number: invoice.number,
-        date: invoice.issueDate.toLocaleDateString('es-ES'),
-        logoBase64: logoBase64,
-        company: {
-            name: invoice.company.name,
-            businessName: invoice.company.businessName,
-            cif: invoice.company.taxId,
-            address: invoice.company.address || ""
-        },
-        items: items.map((i: any) => ({
-            description: i.name,
-            price: Number(i.price),
-            discount: Number(i.discount || 0)
-        })),
-        subtotal: Number(invoice.subtotal),
-        taxRate: Number(invoice.taxRate),
-        taxAmount: Number(invoice.taxAmount),
-        withholdingRate: Number(invoice.withholdingRate),
-        withholdingAmount: Number(invoice.withholdingAmount),
-        total: Number(invoice.totalAmount),
-        settings: {
-            companyName: settings.companyName,
-            commercialName: settings.commercialName || undefined,
-            companyAddress: settings.companyAddress || "",
-            companyEmail: settings.companyEmail || "",
-            companyTaxId: settings.companyTaxId || "",
-            taxIdLabel: settings.taxIdLabel || "EIN",
-            bankBeneficiary: settings.bankBeneficiary || "",
-            bankIban: settings.bankIban || "",
-            bankName: settings.bankName || "",
-            bankAddress: settings.bankAddress || "",
-            bankSwift: settings.bankSwift || ""
+        // Load Logo
+        let logoBase64 = undefined;
+        try {
+            const logoPath = path.join(process.cwd(), 'public', 'invoice-logo.png');
+            if (fs.existsSync(logoPath)) {
+                const logoBuffer = fs.readFileSync(logoPath);
+                logoBase64 = `data:image/png;base64,${logoBuffer.toString('base64')}`;
+            }
+        } catch (e) {
+            console.warn("Failed to load invoice logo", e);
         }
-    }
 
-    // 2. Render to Buffer
-    const stream = await renderToStream(<InvoicePDF data={pdfData} />)
-    const chunks: Buffer[] = []
-    for await (const chunk of stream) {
-        chunks.push(Buffer.from(chunk))
+        const pdfData = {
+            number: invoice.number,
+            date: invoice.issueDate.toLocaleDateString('es-ES'),
+            logoBase64: logoBase64,
+            company: {
+                name: invoice.company.name,
+                businessName: invoice.company.businessName,
+                cif: invoice.company.taxId,
+                address: invoice.company.address || ""
+            },
+            items: items.map((i: any) => ({
+                description: i.name,
+                price: Number(i.price),
+                discount: Number(i.discount || 0)
+            })),
+            subtotal: Number(invoice.subtotal),
+            taxRate: Number(invoice.taxRate),
+            taxAmount: Number(invoice.taxAmount),
+            withholdingRate: Number(invoice.withholdingRate),
+            withholdingAmount: Number(invoice.withholdingAmount),
+            total: Number(invoice.totalAmount),
+            settings: {
+                companyName: settings.companyName,
+                commercialName: settings.commercialName || undefined,
+                companyAddress: settings.companyAddress || "",
+                companyEmail: settings.companyEmail || "",
+                companyTaxId: settings.companyTaxId || "",
+                taxIdLabel: settings.taxIdLabel || "EIN",
+                bankBeneficiary: settings.bankBeneficiary || "",
+                bankIban: settings.bankIban || "",
+                bankName: settings.bankName || "",
+                bankAddress: settings.bankAddress || "",
+                bankSwift: settings.bankSwift || ""
+            }
+        }
+
+        // 2. Render to Buffer
+        const stream = await renderToStream(<InvoicePDF data={pdfData} />)
+        const chunks: Buffer[] = []
+        for await (const chunk of stream) {
+            chunks.push(Buffer.from(chunk))
+        }
+        pdfBuffer = Buffer.concat(chunks)
+    } catch (pdfError: any) {
+        console.error("PDF Generation failed:", pdfError)
+        throw new Error(`Error generando PDF: ${pdfError.message}`)
     }
-    const pdfBuffer = Buffer.concat(chunks)
 
     // --- End PDF Generation ---
 
@@ -212,7 +218,7 @@ export async function sendInvoiceEmail(invoiceId: string, options?: SendInvoiceO
         } catch (dbError) {
             console.error("Failed to update invoice error status", dbError)
         }
-        throw error // Re-throw to UI
+        throw new Error(`Error enviando email (SMTP): ${error.message}`) // Re-throw with clear prefix
     }
 
     revalidatePath(`/invoices/${invoiceId}`)

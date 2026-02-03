@@ -90,9 +90,11 @@ export function InvoiceDetailContent({ invoice, onUpdate }: InvoiceDetailContent
 
             if (onUpdate) onUpdate()
             else router.refresh()
-        } catch (e) {
+        } catch (e: any) {
             console.error(e)
-            toast.error("Error al enviar el email")
+            toast.error("Error al enviar el email", {
+                description: e.message || "Ha ocurrido un error inesperado"
+            })
         } finally {
             setIsSending(false)
         }
