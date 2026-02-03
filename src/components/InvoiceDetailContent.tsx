@@ -78,8 +78,6 @@ export function InvoiceDetailContent({ invoice, onUpdate }: InvoiceDetailContent
             await sendInvoiceEmail(invoice.id, {
                 recipients: selectedRecipients,
                 subject: emailSubject,
-                recipients: selectedRecipients,
-                subject: emailSubject,
                 body: emailBody,
                 bcc: (bccEnabled && companyEmail) ? [companyEmail] : undefined
             })
