@@ -31,6 +31,10 @@ export function InvoiceDetailContent({ invoice, onUpdate }: InvoiceDetailContent
     const [availableContacts, setAvailableContacts] = useState<any[]>([])
     const [selectedRecipients, setSelectedRecipients] = useState<string[]>([])
 
+    // BCC State
+    const [bccEnabled, setBccEnabled] = useState(true)
+    const [companyEmail, setCompanyEmail] = useState<string | null>(null)
+
     const router = useRouter()
     const items = (typeof invoice.items === 'string' ? JSON.parse(invoice.items) : invoice.items || []) as { name: string, price: number }[]
 
@@ -42,6 +46,8 @@ export function InvoiceDetailContent({ invoice, onUpdate }: InvoiceDetailContent
             setEmailSubject(data.subject)
             setEmailBody(data.body)
             setAvailableContacts(data.contacts)
+            setCompanyEmail(data.companyEmail)
+            setBccEnabled(!!data.companyEmail)
             // Default select all contacts
             setSelectedRecipients(data.contacts.map((c: any) => c.email))
         } catch (error) {
@@ -72,7 +78,10 @@ export function InvoiceDetailContent({ invoice, onUpdate }: InvoiceDetailContent
             await sendInvoiceEmail(invoice.id, {
                 recipients: selectedRecipients,
                 subject: emailSubject,
-                body: emailBody
+                recipients: selectedRecipients,
+                subject: emailSubject,
+                body: emailBody,
+                bcc: (bccEnabled && companyEmail) ? [companyEmail] : undefined
             })
 
             toast.success("Factura enviada correctamente", {
@@ -213,6 +222,21 @@ export function InvoiceDetailContent({ invoice, onUpdate }: InvoiceDetailContent
                                         <Badge variant="secondary" className="bg-blue-100 text-blue-700 hover:bg-blue-100">PDF</Badge>
                                     </div>
                                 </div>
+
+                                {/* BCC Option */}
+                                {companyEmail && (
+                                    <div className="flex items-center space-x-2 bg-slate-50 p-3 rounded-lg border border-slate-200">
+                                        <Checkbox
+                                            id="bcc-toggle"
+                                            checked={bccEnabled}
+                                            onCheckedChange={(checked) => setBccEnabled(checked as boolean)}
+                                            className="border-slate-300 data-[state=checked]:bg-slate-900"
+                                        />
+                                        <Label htmlFor="bcc-toggle" className="text-sm text-slate-700 font-medium cursor-pointer">
+                                            Este e-mail se enviará con copia oculta a <span className="font-bold text-slate-900">{companyEmail}</span>
+                                        </Label>
+                                    </div>
+                                )}
                             </div>
                         )}
 
