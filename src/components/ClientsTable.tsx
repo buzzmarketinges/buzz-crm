@@ -5,9 +5,9 @@ import { DataTable, ColumnDef } from "@/components/DataTable"
 import { Button } from "@/components/ui/button"
 import { useRouter } from "next/navigation"
 import { SidePanel } from "@/components/ui/SidePanel"
-import { getCompany } from "@/actions/company-actions"
+import { getCompany, deleteCompany } from "@/actions/company-actions"
 import { ClientDetailContent } from "@/components/ClientDetailContent"
-import { Loader2 } from "lucide-react"
+import { Loader2, Trash2 } from "lucide-react"
 import {
     Select,
     SelectContent,
@@ -15,6 +15,17 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select"
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
+import { toast } from "sonner"
 
 interface ClientsTableProps {
     initialData: any[]
@@ -27,6 +38,8 @@ export function ClientsTable({ initialData, simulatedDate }: ClientsTableProps) 
     const [selectedCompany, setSelectedCompany] = useState<any | null>(null)
     const [isLoading, setIsLoading] = useState(false)
     const [filterStatus, setFilterStatus] = useState<string>('all')
+    const [companyToDelete, setCompanyToDelete] = useState<any | null>(null)
+    const [isDeleting, setIsDeleting] = useState(false)
 
     const filteredData = initialData.filter(item => {
         if (filterStatus === 'all') return true
@@ -50,6 +63,23 @@ export function ClientsTable({ initialData, simulatedDate }: ClientsTableProps) 
         }
     }
 
+    const handleDelete = async () => {
+        if (!companyToDelete) return
+
+        setIsDeleting(true)
+        try {
+            await deleteCompany(companyToDelete.id)
+            toast.success(`Cliente "${companyToDelete.name}" eliminado correctamente`)
+            setCompanyToDelete(null)
+            router.refresh()
+        } catch (error) {
+            console.error("Error deleting company:", error)
+            toast.error("Error al eliminar el cliente")
+        } finally {
+            setIsDeleting(false)
+        }
+    }
+
     const columns: ColumnDef<any>[] = [
         {
             header: "Nombre",
@@ -66,19 +96,19 @@ export function ClientsTable({ initialData, simulatedDate }: ClientsTableProps) 
                     {item.isActive ? 'Activo' : 'Inactivo'}
                 </span>
             ),
-            className: "w-[15%]",
+            className: "w-[12%]",
             sortable: true
         },
         {
             header: "Razón Social",
             accessorKey: "businessName",
-            className: "text-slate-600 text-sm w-[20%]",
+            className: "text-slate-600 text-sm w-[18%]",
             sortable: true
         },
         {
             header: "Email",
             accessorKey: "billingEmail",
-            className: "text-slate-500 text-sm w-[20%]",
+            className: "text-slate-500 text-sm w-[18%]",
             sortable: true
         },
         {
@@ -89,8 +119,29 @@ export function ClientsTable({ initialData, simulatedDate }: ClientsTableProps) 
                     {item._count?.services || 0}
                 </span>
             ),
-            className: "text-center w-[15%]",
+            className: "text-center w-[12%]",
             sortable: true
+        },
+        {
+            header: "Acciones",
+            accessorKey: "id",
+            cell: (item) => (
+                <div className="flex justify-center">
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => {
+                            e.stopPropagation()
+                            setCompanyToDelete(item)
+                        }}
+                        className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                    >
+                        <Trash2 className="h-4 w-4" />
+                    </Button>
+                </div>
+            ),
+            className: "text-center w-[10%]",
+            sortable: false
         }
     ]
 
@@ -156,6 +207,35 @@ export function ClientsTable({ initialData, simulatedDate }: ClientsTableProps) 
                     )
                 )}
             </SidePanel>
+
+            <AlertDialog open={!!companyToDelete} onOpenChange={(open) => !open && setCompanyToDelete(null)}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>¿Eliminar cliente?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            ¿Estás seguro de que quieres eliminar el cliente <strong>{companyToDelete?.name}</strong>?
+                            Esta acción no se puede deshacer y eliminará todos los contactos, servicios y facturas asociados.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel disabled={isDeleting}>Cancelar</AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={handleDelete}
+                            disabled={isDeleting}
+                            className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
+                        >
+                            {isDeleting ? (
+                                <>
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    Eliminando...
+                                </>
+                            ) : (
+                                'Eliminar'
+                            )}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     )
 }
