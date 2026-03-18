@@ -6,6 +6,7 @@ export default function manifest(): MetadataRoute.Manifest {
     short_name: 'Buzz CRM',
     description: 'Gestión y control de clientes de BuzzMarketing',
     start_url: '/',
+    id: '/',
     display: 'standalone',
     background_color: '#ffffff',
     theme_color: '#1e3a8a',
