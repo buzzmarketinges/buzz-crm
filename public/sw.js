@@ -23,3 +23,8 @@ self.addEventListener('notificationclick', function (event) {
         clients.openWindow(event.notification.data.url)
     );
 });
+
+
+self.addEventListener('fetch', function (event) {
+    // Requerido por Chrome para activar el banner de PWA
+});
