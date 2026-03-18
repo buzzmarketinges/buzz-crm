@@ -16,7 +16,7 @@ export default async function DashboardLayout({
     return (
         <div className="flex h-screen bg-background overflow-hidden">
             <Sidebar />
-            <div className="flex-1 md:ml-64 flex flex-col h-full bg-slate-50 transition-all duration-300">
+            <div className="flex-1 md:ml-64 flex flex-col h-full bg-slate-50 transition-all duration-300 overflow-y-auto">
 
                 {/* Mobile Header */}
                 <div className="md:hidden flex items-center p-4 bg-white border-b border-slate-200 sticky top-0 z-30 shrink-0">
@@ -26,7 +26,7 @@ export default async function DashboardLayout({
 
                 <SimulationBar simulatedDate={simulatedDate} />
                 <CronClientDisparador />
-                <main className="flex-1 p-4 md:p-8 max-w-7xl mx-auto w-full overflow-y-auto flex flex-col">
+                <main className="flex-1 p-4 md:p-8 max-w-7xl mx-auto w-full flex flex-col">
                     {children}
                 </main>
             </div>
