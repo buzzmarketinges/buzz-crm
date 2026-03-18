@@ -4,17 +4,17 @@ import bcrypt from 'bcryptjs'
 const prisma = new PrismaClient()
 
 async function main() {
-  const hashedPassword = await bcrypt.hash('password123', 10)
+  const hashedPassword = await bcrypt.hash('Valerossi#7b', 10)
   const user = await prisma.user.upsert({
-    where: { email: 'admin@buzzmarketing.es' },
+    where: { email: 'info@buzzmarketing.es' },
     update: { password: hashedPassword },
     create: {
-      name: 'Admin User',
-      email: 'admin@buzzmarketing.es',
+      name: 'Buzz Admin',
+      email: 'info@buzzmarketing.es',
       password: hashedPassword
     }
   })
-  console.log('User upserted:', user.email)
+  console.log('User password successfully updated for:', user.email)
 }
 
 main().catch(console.error).finally(() => prisma.$disconnect())

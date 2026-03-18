@@ -52,6 +52,7 @@ model Settings {
   simulatedDate     DateTime?
   yearlyGoal        Decimal   @default(100000)
   isAdminMode       Boolean   @default(false)
+  notificationEmail String? // Email para notificaciones de recordatorios
 
   updatedAt         DateTime @updatedAt
 
@@ -59,6 +60,9 @@ model Settings {
   services          Service[]
   serviceTemplates  ServiceTemplate[]
   invoices          Invoice[]
+  projects          Project[]
+  expenses          Expense[]
+  tasks             Task[]
 }
 
 // 2. Company (Clientes)
@@ -73,6 +77,7 @@ model Company {
   contacts        Contact[]
   services        Service[]
   invoices        Invoice[]
+  projects        Project[]
 
   // Multi-tenancy
   settingsId      String    @default("default") // Temporary default for migration
@@ -116,6 +121,9 @@ model Service {
   companyId   String
   company     Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
 
+  projectId   String?
+  project     Project? @relation(fields: [projectId], references: [id])
+
   // Categorización
   serviceTemplateId String?
   serviceTemplate   ServiceTemplate? @relation(fields: [serviceTemplateId], references: [id])
@@ -123,6 +131,9 @@ model Service {
   // Multi-tenancy
   settingsId      String    @default("default")
   settings        Settings  @relation(fields: [settingsId], references: [id])
+
+  @@index([companyId])
+  @@index([projectId])
 }
 
 model ServiceTemplate {
@@ -173,6 +184,9 @@ model Invoice {
 
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
+
+  @@index([companyId])
+  @@index([settingsId])
 }
 
 // 6. User (Autenticación)
@@ -186,4 +200,69 @@ model User {
   
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
+}
+
+// 7. Project (Proyectos)
+model Project {
+  id              String    @id @default(uuid())
+  name            String
+  description     String?
+  startDate       DateTime  @default(now())
+  endDate         DateTime?
+  status          String    @default("ACTIVE") // "ACTIVE" | "COMPLETED" | "CANCELLED"
+  
+  companyId       String
+  company         Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  
+  services        Service[]
+  expenses        Expense[]
+  tasks           Task[]
+
+  // Multi-tenancy
+  settingsId      String    @default("default")
+  settings        Settings  @relation(fields: [settingsId], references: [id])
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+// 8. Expense (Gastos)
+model Expense {
+  id              String    @id @default(uuid())
+  concept         String
+  provider        String
+  amount          Decimal
+  date            DateTime  @default(now())
+  notes           String?
+
+  projectId       String
+  project         Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  // Multi-tenancy
+  settingsId      String    @default("default")
+  settings        Settings  @relation(fields: [settingsId], references: [id])
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+// 9. Task (Tareas y Recordatorios)
+model Task {
+  id              String    @id @default(uuid())
+  title           String
+  description     String?
+  date            DateTime  // Dia y hora inicio
+  endDate         DateTime? // Dia y hora fin
+  isCompleted     Boolean   @default(false)
+  isReminderSent  Boolean   @default(false)
+
+  projectId       String?
+  project         Project?  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  // Multi-tenancy
+  settingsId      String    @default("default")
+  settings        Settings  @relation(fields: [settingsId], references: [id])
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 }
