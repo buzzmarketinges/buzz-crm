@@ -1,0 +1,102 @@
+[
+  {
+    "name": "Tattoox",
+    "totalRevenue": 3000,
+    "invoicesCount": 3
+  },
+  {
+    "name": "Palacio del bebé",
+    "totalRevenue": 2500,
+    "invoicesCount": 5
+  },
+  {
+    "name": "Clustag",
+    "totalRevenue": 1140,
+    "invoicesCount": 2
+  },
+  {
+    "name": "Voltura Projects",
+    "totalRevenue": 860,
+    "invoicesCount": 2
+  },
+  {
+    "name": "Hermanos Tapar SL",
+    "totalRevenue": 727,
+    "invoicesCount": 1
+  },
+  {
+    "name": "Covides",
+    "totalRevenue": 600,
+    "invoicesCount": 2
+  },
+  {
+    "name": "FastPoint Components",
+    "totalRevenue": 595,
+    "invoicesCount": 2
+  },
+  {
+    "name": "Francisco Javier Trinidad Martínez",
+    "totalRevenue": 595,
+    "invoicesCount": 5
+  },
+  {
+    "name": "Ros Studio",
+    "totalRevenue": 550,
+    "invoicesCount": 5
+  },
+  {
+    "name": "Segarra i Olive",
+    "totalRevenue": 400,
+    "invoicesCount": 5
+  },
+  {
+    "name": "Sweet Care",
+    "totalRevenue": 400,
+    "invoicesCount": 6
+  },
+  {
+    "name": "Club Bàsquet Hospitalet",
+    "totalRevenue": 342.85,
+    "invoicesCount": 2
+  },
+  {
+    "name": "Bermaq",
+    "totalRevenue": 266.6666666666667,
+    "invoicesCount": 2
+  },
+  {
+    "name": "Club Futbol Base Sant Pere Pescador",
+    "totalRevenue": 245,
+    "invoicesCount": 5
+  },
+  {
+    "name": "Escola Pla de les Vinyes",
+    "totalRevenue": 91.2,
+    "invoicesCount": 1
+  },
+  {
+    "name": "Activa valles",
+    "totalRevenue": 0,
+    "invoicesCount": 0
+  },
+  {
+    "name": "Tagtio",
+    "totalRevenue": 0,
+    "invoicesCount": 0
+  },
+  {
+    "name": "Centro formativo CTS",
+    "totalRevenue": 0,
+    "invoicesCount": 0
+  },
+  {
+    "name": "Loremar",
+    "totalRevenue": 0,
+    "invoicesCount": 0
+  },
+  {
+    "name": "Alpex Digital",
+    "totalRevenue": 0,
+    "invoicesCount": 0
+  }
+]
