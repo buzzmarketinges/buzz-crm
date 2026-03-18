@@ -73,46 +73,7 @@ export async function createService(data: ServiceFormValues) {
 // Helper to serialize Decimal to number and Date to string recursively
 function deepSerialize(obj: any): any {
     if (obj === null || obj === undefined) return obj
-
-    // Arrays (check first to avoid object confusion)
-    if (Array.isArray(obj)) {
-        return obj.map(deepSerialize)
-    }
-
-    // Primitives
-    if (typeof obj === 'number' || typeof obj === 'string' || typeof obj === 'boolean') return obj
-
-    // Dates
-    if (obj instanceof Date) {
-        return obj.toISOString()
-    }
-
-    // Prisma Decimal
-    // Instances of Decimal have .toNumber()
-    // We also check for the internal shape { s, e, d } just in case it's a plain object literal resembling a Decimal
-    if (typeof obj === 'object') {
-        // Safe check for function (Decimal.js instances)
-        if (typeof (obj as any).toNumber === 'function') {
-            return (obj as any).toNumber()
-        }
-        // Safe check for serialized/internal Decimal structure
-        if ('s' in obj && 'e' in obj && 'd' in obj && Array.isArray((obj as any).d)) {
-            return Number(obj)
-        }
-    }
-
-    // Generic Object (Recursive)
-    if (typeof obj === 'object') {
-        const newObj: any = {}
-        for (const key in obj) {
-            if (Object.prototype.hasOwnProperty.call(obj, key)) {
-                newObj[key] = deepSerialize(obj[key])
-            }
-        }
-        return newObj
-    }
-
-    return obj
+    return JSON.parse(JSON.stringify(obj))
 }
 
 export async function getServices(companyId?: string) {
