@@ -17,6 +17,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Buzz CRM",
   description: "Advanced Agentic Coding CRM",
+  manifest: "/manifest.webmanifest",
 };
 
 export default function RootLayout({
