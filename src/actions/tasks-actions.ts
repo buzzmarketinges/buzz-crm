@@ -184,8 +184,8 @@ export async function sendDailySummary() {
     const allSettings = await prismaLocal.settings.findMany()
 
     for (const setting of allSettings) {
-        const targetEmail = setting.notificationEmail || setting.companyEmail
-        const settingTasks = tasks.filter(t => t.settingsId === setting.id)
+        const targetEmail = (setting as any).notificationEmail || setting.companyEmail
+        const settingTasks = tasks.filter((t: any) => t.settingsId === setting.id)
 
         if (targetEmail) {
             const transporter = nodemailer.createTransport({
@@ -245,7 +245,7 @@ export async function testSmtpConnection() {
 
     if (!setting || !setting.emailSmtpHost) throw new Error("SMTP no configurado en Ajustes")
 
-    const targetEmail = setting.notificationEmail || setting.companyEmail
+    const targetEmail = (setting as any).notificationEmail || setting.companyEmail
 
     if (!targetEmail) throw new Error("No hay email de destino configurado")
 
