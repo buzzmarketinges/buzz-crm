@@ -17,7 +17,7 @@ export interface TaskFormValues {
 export async function createTask(data: TaskFormValues) {
     const tenantId = await getTenantId()
 
-    const task = await prisma.task.create({
+    const task = await (prisma as any).task.create({
         data: {
             title: data.title,
             description: data.description || null,
@@ -38,7 +38,7 @@ export async function createTask(data: TaskFormValues) {
 
 export async function updateTaskStatus(taskId: string, isCompleted: boolean) {
     const tenantId = await getTenantId()
-    const task = await prisma.task.updateMany({
+    const task = await (prisma as any).task.updateMany({
         where: { id: taskId, settingsId: tenantId },
         data: { isCompleted }
     })
@@ -48,7 +48,7 @@ export async function updateTaskStatus(taskId: string, isCompleted: boolean) {
 
 export async function updateTask(taskId: string, data: Partial<TaskFormValues>) {
     const tenantId = await getTenantId()
-    await prisma.task.updateMany({
+    await (prisma as any).task.updateMany({
         where: { id: taskId, settingsId: tenantId },
         data: {
             title: data.title,
@@ -66,7 +66,7 @@ export async function updateTask(taskId: string, data: Partial<TaskFormValues>) 
 
 export async function deleteTask(taskId: string) {
     const tenantId = await getTenantId()
-    await prisma.task.deleteMany({
+    await (prisma as any).task.deleteMany({
         where: { id: taskId, settingsId: tenantId }
     })
     revalidatePath('/calendar')
@@ -74,7 +74,7 @@ export async function deleteTask(taskId: string) {
 
 export async function getTasks(projectId?: string) {
     const tenantId = await getTenantId()
-    const tasks = await prisma.task.findMany({
+    const tasks = await (prisma as any).task.findMany({
         where: {
             settingsId: tenantId,
             ...(projectId ? { projectId } : {})
@@ -96,7 +96,7 @@ export async function sendTaskReminders() {
     const now = setting?.simulatedDate ? new Date(setting.simulatedDate) : new Date()
     const pastHour = new Date(now.getTime() - 60 * 60 * 1000) // 1 hour ago
 
-    const tasks = await prismaLocal.task.findMany({
+    const tasks = await (prismaLocal as any).task.findMany({
         where: {
             isCompleted: false,
             isReminderSent: false,
@@ -154,7 +154,7 @@ export async function sendTaskReminders() {
                     `
                 })
                 // Mark as sent
-                await prismaLocal.task.update({ where: { id: task.id }, data: { isReminderSent: true } })
+                await (prismaLocal as any).task.update({ where: { id: task.id }, data: { isReminderSent: true } })
             } catch (error) {
                 console.error("Failed to send task email:", error)
             }
@@ -170,7 +170,7 @@ export async function sendDailySummary() {
     const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0)
     const endOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59)
 
-    const tasks = await prismaLocal.task.findMany({
+    const tasks = await (prismaLocal as any).task.findMany({
         where: {
             date: { gte: startOfDay, lte: endOfDay }
         },
