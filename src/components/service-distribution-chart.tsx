@@ -49,7 +49,7 @@ export function ServiceDistributionChart({ data }: ServiceDistributionChartProps
     }
 
     return (
-        <Card className="col-span-3 shadow-sm border-none bg-white/50 backdrop-blur-sm flex flex-col">
+        <Card className="w-full shadow-sm border-none bg-white/50 backdrop-blur-sm flex flex-col">
             <CardHeader className="pb-2">
                 <CardTitle className="text-lg font-semibold text-slate-800">Distribución de Servicios</CardTitle>
                 <CardDescription className="text-slate-500">Por valor facturado este mes</CardDescription>

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { updateSettings } from "@/actions/settings-actions"
 import { clearTenant } from "@/actions/tenant-actions"
+import { testSmtpConnection } from "@/actions/tasks-actions"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -27,6 +28,19 @@ export function SettingsContent({ settings }: { settings: any }) {
     const [taxEnabled, setTaxEnabled] = useState(s.taxEnabled || false)
     const [withholdingEnabled, setWithholdingEnabled] = useState(s.withholdingEnabled || false)
     const [isDirty, setIsDirty] = useState(false)
+    const [isTesting, setIsTesting] = useState(false)
+
+    const handleTestSmtp = async () => {
+        setIsTesting(true)
+        try {
+            await testSmtpConnection()
+            toast.success("Prueba de envío correcta. Revisa tu buzón.")
+        } catch (error: any) {
+             toast.error("Fallo Envio: " + (error.message || "Error"))
+        } finally {
+             setIsTesting(false)
+        }
+    }
 
     // Helper to mark dirty when user interacts with custom switches
     const markDirty = () => setIsDirty(true)
@@ -224,6 +238,14 @@ export function SettingsContent({ settings }: { settings: any }) {
                                     <MinimalInput label="SMTP Port" name="emailSmtpPort" defaultValue={s.emailSmtpPort || 587} />
                                     <MinimalInput label="Usuario" name="emailSmtpUser" defaultValue={s.emailSmtpUser || ""} />
                                     <MinimalInput label="Contraseña" name="emailSmtpPass" type="password" defaultValue={s.emailSmtpPass || ""} />
+                                    
+                                    <div className="h-px bg-gray-100 my-2" />
+                                    <Button type="button" variant="outline" size="sm" onClick={handleTestSmtp} disabled={isTesting} className="w-full text-indigo-600 border-indigo-200 hover:bg-indigo-50 font-semibold shadow-sm">
+                                        {isTesting ? "Enviando Prueba..." : "Probar Envío SMTP"}
+                                    </Button>
+                                    
+                                    <MinimalInput label="Email de Notificaciones (Recordatorios)" name="notificationEmail" defaultValue={s.notificationEmail || ""} placeholder="correo@ejemplo.com" />
+                                    <p className="text-xs text-slate-400">Aquí se recibirán los avisos de tareas y sumarios diarios.</p>
                                 </div>
                             </div>
                         </div>
