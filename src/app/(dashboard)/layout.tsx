@@ -3,6 +3,7 @@ import { Sidebar } from "@/components/Sidebar";
 import { MobileNav } from "@/components/MobileNav";
 import { getSettings } from "@/actions/settings-actions";
 import { SimulationBar } from "@/components/SimulationBar";
+import { CronClientDisparador } from "@/components/CronClientDisparador";
 
 export default async function DashboardLayout({
     children,
@@ -24,7 +25,8 @@ export default async function DashboardLayout({
                 </div>
 
                 <SimulationBar simulatedDate={simulatedDate} />
-                <main className="flex-1 p-4 md:p-8 max-w-7xl mx-auto w-full overflow-hidden flex flex-col">
+                <CronClientDisparador />
+                <main className="flex-1 p-4 md:p-8 max-w-7xl mx-auto w-full overflow-y-auto flex flex-col">
                     {children}
                 </main>
             </div>

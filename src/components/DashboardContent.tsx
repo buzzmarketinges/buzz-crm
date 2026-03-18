@@ -44,29 +44,31 @@ export function DashboardContent({ stats }: { stats: any }) {
         <div className="container mx-auto py-8 space-y-8 animate-in fade-in duration-700">
 
             {/* Page Header */}
-            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+            <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight text-slate-800">Dashboard</h1>
-                    <p className="text-slate-500 mt-1">Resumen de la actividad y estado financiero.</p>
+                    <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-800">Dashboard</h1>
+                    <p className="text-slate-500 text-sm mt-1">Resumen de la actividad y estado financiero.</p>
                 </div>
 
-                <div className="flex items-center gap-6">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full lg:w-auto">
                     {/* Net/Gross Switch */}
-                    <div className="flex items-center space-x-2 bg-white/50 backdrop-blur-sm px-4 py-2 rounded-full border border-slate-200/60 shadow-sm">
-                        <Switch id="net-mode" checked={showNet} onCheckedChange={setShowNet} />
-                        <Label htmlFor="net-mode" className="text-sm font-medium text-slate-700 cursor-pointer">
-                            {showNet ? "Facturación Neta (Sin Impuestos)" : "Facturación Total (Con Impuestos)"}
-                        </Label>
+                    <div className="flex items-center space-x-2 bg-white px-4 py-2.5 rounded-full border border-slate-200/60 shadow-sm w-full sm:w-auto justify-between sm:justify-start">
+                        <div className="flex items-center gap-2">
+                            <Switch id="net-mode" checked={showNet} onCheckedChange={setShowNet} />
+                            <Label htmlFor="net-mode" className="text-xs sm:text-sm font-medium text-slate-700 cursor-pointer whitespace-nowrap">
+                                {showNet ? "Facturación Neta" : "Facturación Total"}
+                            </Label>
+                        </div>
                     </div>
 
-                    <div className="flex gap-2">
-                        <Link href="/clients/new">
-                            <Button className="bg-slate-900 hover:bg-slate-800 text-white shadow-lg shadow-slate-900/10 transition-all active:scale-95">
+                    <div className="grid grid-cols-2 gap-2 w-full sm:flex sm:w-auto">
+                        <Link href="/clients/new" className="w-full sm:w-auto">
+                            <Button className="w-full bg-slate-900 hover:bg-slate-800 text-white shadow-md shadow-slate-900/10 transition-all active:scale-95 text-xs sm:text-sm">
                                 Nuevo Cliente
                             </Button>
                         </Link>
-                        <Link href="/billing">
-                            <Button variant="outline" className="text-slate-700 border-slate-200 hover:bg-slate-50 active:scale-95 transition-all">
+                        <Link href="/billing" className="w-full sm:w-auto">
+                            <Button variant="outline" className="w-full text-slate-700 border-slate-200 hover:bg-slate-50 active:scale-95 transition-all text-xs sm:text-sm">
                                 Ver Facturas
                             </Button>
                         </Link>
@@ -185,12 +187,16 @@ export function DashboardContent({ stats }: { stats: any }) {
                 </Card>
             </div>
 
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-7">
+            <div className="flex flex-col lg:grid lg:grid-cols-7 gap-6">
                 {/* Revenue Chart */}
-                <RevenueChart data={revenueChartData} />
+                <div className="lg:col-span-4 w-full">
+                    <RevenueChart data={revenueChartData} />
+                </div>
 
                 {/* Service Distribution Chart */}
-                <ServiceDistributionChart data={serviceDistributionData} />
+                <div className="lg:col-span-3 w-full">
+                    <ServiceDistributionChart data={serviceDistributionData} />
+                </div>
             </div>
 
         </div>

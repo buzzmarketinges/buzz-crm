@@ -84,7 +84,7 @@ export function RevenueChart({ data }: RevenueChartProps) {
     }
 
     return (
-        <Card className="col-span-4 shadow-sm border-none bg-white/50 backdrop-blur-sm">
+        <Card className="w-full shadow-sm border-none bg-white/50 backdrop-blur-sm">
             <CardHeader>
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div>
