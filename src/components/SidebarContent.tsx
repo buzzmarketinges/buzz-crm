@@ -4,7 +4,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 // Ensure you have lucide-react installed and it has Euro. If not, fallback or check availability.
-import { FileText, Users, Settings, Briefcase, Euro, LayoutDashboard, DollarSign } from "lucide-react"
+import { FileText, Users, Settings, Briefcase, Euro, LayoutDashboard, DollarSign, Folder, Calendar } from "lucide-react"
 
 import { Montserrat } from 'next/font/google'
 
@@ -16,6 +16,8 @@ const montserrat = Montserrat({
 const items = [
     { name: "Dashboard", href: "/", icon: LayoutDashboard },
     { name: "Facturación", href: "/billing", icon: Euro },
+    { name: "Proyectos", href: "/projects", icon: Folder },
+    { name: "Calendario", href: "/calendar", icon: Calendar },
     { name: "Clientes", href: "/clients", icon: Users },
     { name: "Servicios", href: "/services", icon: Briefcase },
     { name: "Ajustes", href: "/settings", icon: Settings },
