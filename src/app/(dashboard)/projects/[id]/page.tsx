@@ -5,13 +5,14 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft } from "lucide-react"
 
-export default async function ProjectPage({ params }: { params: { id: string } }) {
-    const project = await getProject(params.id)
+export default async function ProjectPage({ params }: { params: Promise<{ id: string }> }) {
+    const resolvedParams = await params
+    const project = await getProject(resolvedParams.id)
     if (!project) return <div className="p-8 text-slate-500">Proyecto no encontrado.</div>
 
     // Parallel sub-fetches
     const [report, services] = await Promise.all([
-        getProjectReport(params.id),
+        getProjectReport(resolvedParams.id),
         getServices(project.companyId)
     ])
 
