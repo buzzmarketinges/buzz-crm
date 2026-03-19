@@ -53,6 +53,7 @@ model Settings {
   yearlyGoal        Decimal   @default(100000)
   isAdminMode       Boolean   @default(false)
   notificationEmail String? // Email para notificaciones de recordatorios
+  dailyNotificationTime String @default("08:00") // Hora de envío: "08:00"
 
   updatedAt         DateTime @updatedAt
 

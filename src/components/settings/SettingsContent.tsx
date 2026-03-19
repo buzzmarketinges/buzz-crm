@@ -246,6 +246,10 @@ export function SettingsContent({ settings }: { settings: any }) {
                                     
                                     <MinimalInput label="Email de Notificaciones (Recordatorios)" name="notificationEmail" defaultValue={s.notificationEmail || ""} placeholder="correo@ejemplo.com" />
                                     <p className="text-xs text-slate-400">Aquí se recibirán los avisos de tareas y sumarios diarios.</p>
+
+                                    <div className="h-px bg-gray-100 my-2" />
+                                    <MinimalInput label="Hora Resumen Diario" name="dailyNotificationTime" type="time" defaultValue={s.dailyNotificationTime || "08:00"} />
+                                    <p className="text-xs text-slate-400">Hora a la que se enviará el correo resumen de tareas del día.</p>
                                 </div>
                             </div>
                         </div>
