@@ -184,6 +184,18 @@ export async function sendDailySummary() {
     const allSettings = await prismaLocal.settings.findMany()
 
     for (const setting of allSettings) {
+        // Validación de Hora Dinámica
+        const targetTime = (setting as any).dailyNotificationTime || "08:00"
+        const [targetHour] = targetTime.split(':').map(Number)
+        
+        const madridTime = new Date().toLocaleString("en-US", { timeZone: "Europe/Madrid" })
+        const currentHour = new Date(madridTime).getHours()
+
+        if (currentHour !== targetHour) {
+            console.log(`Saltando resumen diario para ${setting.companyName}. Hora: ${currentHour}, Esperada: ${targetHour}`)
+            continue
+        }
+
         const targetEmail = (setting as any).notificationEmail || setting.companyEmail
         const settingTasks = tasks.filter((t: any) => t.settingsId === setting.id)
 
