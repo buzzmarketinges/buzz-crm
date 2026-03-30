@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo, useEffect, useCallback, useRef } from 'react'
+import { useState, useMemo, useCallback, useRef } from 'react'
 import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Search, ArrowUp, ArrowDown, ChevronRight, CheckSquare, Square } from "lucide-react"
@@ -25,8 +25,10 @@ interface DataTableProps<T> {
 
     // Selection Props
     enableMultiSelection?: boolean
+    selectedIds?: string[]
     onSelectionChange?: (selectedIds: string[]) => void
     selectionActions?: React.ReactNode // Actions to show when items are selected
+
     headerActions?: React.ReactNode // Actions to show next to search bar
     containerClassName?: string
 }
@@ -64,6 +66,7 @@ export function DataTable<T extends { id: string | number }>({
     onRowClick,
     variant = 'card',
     enableMultiSelection = false,
+    selectedIds: controlledSelectedIds,
     onSelectionChange,
     selectionActions,
     headerActions,
@@ -71,17 +74,27 @@ export function DataTable<T extends { id: string | number }>({
 }: DataTableProps<T>) {
     const [searchTerm, setSearchTerm] = useState("")
     const [sortConfig, setSortConfig] = useState<{ key: string, direction: 'asc' | 'desc' } | null>(null)
-    const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+    const [internalSelectedIds, setInternalSelectedIds] = useState<Set<string>>(new Set())
+
+    // Use controlled or internal state
+    const selectedIdsSet = useMemo(() => {
+        if (controlledSelectedIds) return new Set(controlledSelectedIds.map(String))
+        return internalSelectedIds
+    }, [controlledSelectedIds, internalSelectedIds])
+
+    const setSelectedIds = (newSet: Set<string>) => {
+        if (onSelectionChange) {
+            onSelectionChange(Array.from(newSet))
+        }
+        if (!controlledSelectedIds) {
+            setInternalSelectedIds(newSet)
+        }
+    }
+
 
     // Derived state for selection mode
-    const isSelectionMode = selectedIds.size > 0
+    const isSelectionMode = selectedIdsSet.size > 0
 
-    // Sync selection changes to parent
-    useEffect(() => {
-        if (onSelectionChange) {
-            onSelectionChange(Array.from(selectedIds))
-        }
-    }, [selectedIds, onSelectionChange])
 
     // Helper to get value from path "company.name"
     const getValue = (obj: any, path: string) => {
@@ -123,7 +136,7 @@ export function DataTable<T extends { id: string | number }>({
     }
 
     const toggleSelection = (id: string) => {
-        const newSelected = new Set(selectedIds)
+        const newSelected = new Set(selectedIdsSet)
         if (newSelected.has(id)) {
             newSelected.delete(id)
         } else {
@@ -137,10 +150,11 @@ export function DataTable<T extends { id: string | number }>({
 
         // Enter selection mode and select this item
         const id = String(item.id)
-        const newSelected = new Set(selectedIds)
+        const newSelected = new Set(selectedIdsSet)
         newSelected.add(id)
         setSelectedIds(newSelected)
     }
+
 
     const handleRowClickInternal = (item: T) => {
         const id = String(item.id)
@@ -152,7 +166,8 @@ export function DataTable<T extends { id: string | number }>({
     }
 
     // Clear selection
-    const clearSelection = () => setSelectedIds(new Set())
+    const clearSelection = () => setSelectedIds(new Set<string>())
+
 
 
     return (
@@ -161,9 +176,10 @@ export function DataTable<T extends { id: string | number }>({
                 {isSelectionMode ? (
                     <div className="flex items-center gap-4 flex-1 animate-in fade-in slide-in-from-left-2 duration-200">
                         <div className="flex items-center gap-2 bg-slate-900 text-white px-3 py-1.5 rounded-lg shadow-md">
-                            <span className="font-bold text-sm">{selectedIds.size}</span>
+                            <span className="font-bold text-sm">{selectedIdsSet.size}</span>
                             <span className="text-xs font-medium opacity-80">seleccionados</span>
                         </div>
+
 
                         {selectionActions}
 
@@ -202,13 +218,32 @@ export function DataTable<T extends { id: string | number }>({
             )}>
                 <Table>
                     <TableHeader className="bg-slate-50 border-b border-slate-200">
-                        <TableRow className="hover:bg-transparent">
-                            {enableMultiSelection && isSelectionMode && (
-                                <TableHead className="w-10 px-2 sticky top-0 z-50 bg-slate-50">
-                                    {/* Header checkbox could go here for select all */}
+                        <TableRow className="hover:bg-transparent h-12">
+                            {enableMultiSelection && (
+                                <TableHead className="w-10 px-2 sticky top-0 z-50 bg-slate-50 border-b border-slate-200">
+                                    <div 
+                                        onClick={(e) => {
+                                            e.stopPropagation()
+                                            if (selectedIdsSet.size === sortedData.length && sortedData.length > 0) {
+                                                setSelectedIds(new Set())
+                                            } else {
+                                                setSelectedIds(new Set(sortedData.map(item => String(item.id))))
+                                            }
+                                        }}
+                                        className={`w-5 h-5 rounded border flex items-center justify-center transition-colors cursor-pointer ${
+                                            selectedIdsSet.size === sortedData.length && sortedData.length > 0 
+                                            ? 'bg-blue-600 border-blue-600 text-white' 
+                                            : 'border-slate-300 bg-white hover:border-slate-400'
+                                        }`}
+                                        title={selectedIdsSet.size === sortedData.length ? "Deseleccionar todo" : "Seleccionar todo"}
+                                    >
+                                        {selectedIdsSet.size === sortedData.length && sortedData.length > 0 && <CheckSquare className="w-3.5 h-3.5" />}
+                                    </div>
                                 </TableHead>
                             )}
+
                             {columns.map((col, idx) => {
+
                                 const isSortable = col.sortable !== false && !!col.accessorKey
                                 return (
                                     <TableHead
@@ -240,8 +275,9 @@ export function DataTable<T extends { id: string | number }>({
                                     key={item.id}
                                     item={item}
                                     columns={columns}
-                                    isSelected={selectedIds.has(String(item.id))}
+                                    isSelected={selectedIdsSet.has(String(item.id))}
                                     isSelectionMode={isSelectionMode}
+
                                     onRowClick={() => handleRowClickInternal(item)}
                                     onLongPress={() => handleRowPress(item)}
                                     enableMultiSelection={enableMultiSelection}
