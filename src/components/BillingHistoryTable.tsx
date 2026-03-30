@@ -6,7 +6,7 @@ import { useState, useMemo } from 'react'
 import { DataTable, ColumnDef } from "@/components/DataTable"
 import { InvoiceStatusSelect } from "@/components/InvoiceStatusSelect"
 import { Button } from "@/components/ui/button"
-import { Archive, ArchiveRestore, Eye, Download, Loader2, Check, X, Filter, Trash2 } from "lucide-react"
+import { Archive, ArchiveRestore, Eye, Download, Loader2, Check, X, Filter, Trash2, CheckSquare } from "lucide-react"
 import { toggleInvoiceArchive, getInvoice, updateInvoiceStatus, deleteInvoice } from "@/actions/invoice-actions"
 import Link from "next/link"
 import { SidePanel } from "@/components/ui/SidePanel"
@@ -33,16 +33,28 @@ export function BillingHistoryTable({ initialData, isArchivedView = false, isAdm
 
     // Filters
     const [filters, setFilters] = useState({
-        date: '',
+        startDate: '',
+        endDate: '',
         client: '',
         status: 'all',
         minAmount: '',
         maxAmount: ''
     })
 
+
     const filteredData = useMemo(() => {
         return initialData.filter(item => {
-            if (filters.date && !item.issueDate.startsWith(filters.date)) return false
+            const itemDate = new Date(item.issueDate)
+            
+            if (filters.startDate) {
+                if (itemDate < new Date(filters.startDate)) return false
+            }
+            if (filters.endDate) {
+                const end = new Date(filters.endDate)
+                end.setHours(23, 59, 59, 999)
+                if (itemDate > end) return false
+            }
+
             // Handle nested company name safely
             const clientName = item.company?.name || ""
             if (filters.client && !clientName.toLowerCase().includes(filters.client.toLowerCase())) return false
@@ -53,6 +65,7 @@ export function BillingHistoryTable({ initialData, isArchivedView = false, isAdm
             return true
         })
     }, [initialData, filters])
+
 
     const handleRowClick = async (item: any) => {
         setSelectedInvoiceId(item.id)
@@ -91,6 +104,37 @@ export function BillingHistoryTable({ initialData, isArchivedView = false, isAdm
             setIsBulkUpdating(false)
         }
     }
+
+    const handleBulkDownload = async () => {
+        if (selectedIds.length === 0) return
+        setIsBulkUpdating(true)
+        try {
+            const res = await fetch('/api/invoice/download-zip', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ids: selectedIds })
+            })
+
+            if (!res.ok) throw new Error("Error al descargar ZIP")
+
+            const blob = await res.blob()
+            const url = window.URL.createObjectURL(blob)
+            const a = document.createElement('a')
+            a.href = url
+            a.download = `facturas_seleccionadas.zip`
+            document.body.appendChild(a)
+            a.click()
+            window.URL.revokeObjectURL(url)
+            document.body.removeChild(a)
+            toast.success("Descarga iniciada")
+        } catch (e) {
+            toast.error("Error al descargar facturas")
+            console.error(e)
+        } finally {
+            setIsBulkUpdating(false)
+        }
+    }
+
 
     const columns: ColumnDef<any>[] = [
         {
@@ -210,63 +254,92 @@ export function BillingHistoryTable({ initialData, isArchivedView = false, isAdm
                 searchKeys={['number', 'company.name']}
                 onRowClick={handleRowClick}
                 enableMultiSelection={true}
+                selectedIds={selectedIds}
                 onSelectionChange={setSelectedIds}
                 containerClassName="max-h-[calc(100vh-320px)]"
+
                 headerActions={(
-                    <Dialog>
-                        <DialogTrigger asChild>
-                            <Button variant="outline" size="sm" className="h-9 gap-2 border-dashed">
-                                <Filter className="w-4 h-4" /> Filtros
-                            </Button>
-                        </DialogTrigger>
-                        <DialogContent className="sm:max-w-[425px]">
-                            <DialogHeader>
-                                <DialogTitle>Filtrar Facturas</DialogTitle>
-                            </DialogHeader>
-                            <div className="grid gap-4 py-4">
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="space-y-2">
-                                        <Label>Fecha</Label>
-                                        <Input type="date" value={filters.date} onChange={(e) => setFilters({ ...filters, date: e.target.value })} />
+                    <div className="flex items-center gap-2">
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-9 gap-2"
+                            onClick={() => {
+                                if (selectedIds.length === filteredData.length) {
+                                    setSelectedIds([])
+                                } else {
+                                    setSelectedIds(filteredData.map(i => i.id))
+                                }
+                            }}
+                        >
+                            <CheckSquare className="w-4 h-4" /> 
+                            {selectedIds.length === filteredData.length ? "Deseleccionar todo" : "Seleccionar todo"}
+                        </Button>
+
+                        <Dialog>
+                            <DialogTrigger asChild>
+                                <Button variant="outline" size="sm" className="h-9 gap-2 border-dashed">
+                                    <Filter className="w-4 h-4" /> Filtros
+                                </Button>
+                            </DialogTrigger>
+                            <DialogContent className="sm:max-w-[425px]">
+                                <DialogHeader>
+                                    <DialogTitle>Filtrar Facturas</DialogTitle>
+                                </DialogHeader>
+                                <div className="grid gap-4 py-4">
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="space-y-2">
+                                            <Label>Desde</Label>
+                                            <Input type="date" value={filters.startDate} onChange={(e) => setFilters({ ...filters, startDate: e.target.value })} />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label>Hasta</Label>
+                                            <Input type="date" value={filters.endDate} onChange={(e) => setFilters({ ...filters, endDate: e.target.value })} />
+                                        </div>
                                     </div>
+                                    <div className="grid grid-cols-1 gap-4">
+                                        <div className="space-y-2">
+                                            <Label>Estado</Label>
+                                            <Select value={filters.status} onValueChange={(v) => setFilters({ ...filters, status: v })}>
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder="Todos" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="all">Todos</SelectItem>
+                                                    <SelectItem value="DRAFT">Borrador</SelectItem>
+                                                    <SelectItem value="SENT">Enviado</SelectItem>
+                                                    <SelectItem value="PAID">Pagado</SelectItem>
+                                                    <SelectItem value="OVERDUE">Vencido</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                    </div>
+
                                     <div className="space-y-2">
-                                        <Label>Estado</Label>
-                                        <Select value={filters.status} onValueChange={(v) => setFilters({ ...filters, status: v })}>
-                                            <SelectTrigger>
-                                                <SelectValue placeholder="Todos" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="all">Todos</SelectItem>
-                                                <SelectItem value="DRAFT">Borrador</SelectItem>
-                                                <SelectItem value="SENT">Enviado</SelectItem>
-                                                <SelectItem value="PAID">Pagado</SelectItem>
-                                                <SelectItem value="OVERDUE">Vencido</SelectItem>
-                                            </SelectContent>
-                                        </Select>
+                                        <Label>Cliente</Label>
+                                        <Input placeholder="Nombre del cliente..." value={filters.client} onChange={(e) => setFilters({ ...filters, client: e.target.value })} />
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="space-y-2">
+                                            <Label>Min. Importe</Label>
+                                            <Input type="number" placeholder="0.00" value={filters.minAmount} onChange={(e) => setFilters({ ...filters, minAmount: e.target.value })} />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label>Max. Importe</Label>
+                                            <Input type="number" placeholder="Max" value={filters.maxAmount} onChange={(e) => setFilters({ ...filters, maxAmount: e.target.value })} />
+                                        </div>
                                     </div>
                                 </div>
-                                <div className="space-y-2">
-                                    <Label>Cliente</Label>
-                                    <Input placeholder="Nombre del cliente..." value={filters.client} onChange={(e) => setFilters({ ...filters, client: e.target.value })} />
-                                </div>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="space-y-2">
-                                        <Label>Min. Importe</Label>
-                                        <Input type="number" placeholder="0.00" value={filters.minAmount} onChange={(e) => setFilters({ ...filters, minAmount: e.target.value })} />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label>Max. Importe</Label>
-                                        <Input type="number" placeholder="Max" value={filters.maxAmount} onChange={(e) => setFilters({ ...filters, maxAmount: e.target.value })} />
-                                    </div>
-                                </div>
-                            </div>
-                            <DialogFooter>
-                                <Button variant="ghost" onClick={() => setFilters({ date: '', client: '', status: 'all', minAmount: '', maxAmount: '' })}>Limpiar Filtros</Button>
-                            </DialogFooter>
-                        </DialogContent>
-                    </Dialog>
+                                <DialogFooter>
+                                    <Button variant="ghost" onClick={() => setFilters({ startDate: '', endDate: '', client: '', status: 'all', minAmount: '', maxAmount: '' })}>Limpiar Filtros</Button>
+                                </DialogFooter>
+
+                            </DialogContent>
+                        </Dialog>
+                    </div>
                 )}
                 selectionActions={
+
                     <div className="flex items-center gap-2">
                         {isArchivedView ? (
                             <Button
@@ -327,7 +400,17 @@ export function BillingHistoryTable({ initialData, isArchivedView = false, isAdm
                         >
                             Marcar como Enviado
                         </Button>
+                        <Button
+                            size="sm"
+                            variant="secondary"
+                            disabled={isBulkUpdating}
+                            onClick={handleBulkDownload}
+                            className="h-8 bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200"
+                        >
+                            <Download className="h-3.5 w-3.5 mr-2" /> Descargar todo
+                        </Button>
                     </div>
+
                 }
             />
 
