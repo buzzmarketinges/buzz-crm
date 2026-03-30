@@ -3,6 +3,8 @@ import prisma from "@/lib/prisma"
 import { getTenantId } from "@/lib/tenant"
 import fs from "fs"
 import JSZip from "jszip"
+import { generateInvoicePdfBuffer } from "@/lib/invoice-pdf"
+
 
 export async function POST(req: NextRequest) {
     try {
@@ -48,16 +50,20 @@ export async function POST(req: NextRequest) {
         let addedCount = 0
 
         for (const inv of invoices) {
-            if (inv.pdfPath && fs.existsSync(inv.pdfPath)) {
-                const content = fs.readFileSync(inv.pdfPath)
+            try {
+                // Try to use the utility which handles regeneration
+                const content = await generateInvoicePdfBuffer(inv.id)
                 zip.file(`${inv.number}.pdf`, content)
                 addedCount++
+            } catch (err) {
+                console.error(`Failed to add invoice ${inv.number} to ZIP:`, err)
             }
         }
 
         if (addedCount === 0) {
-            return new NextResponse(JSON.stringify({ error: "No se encontraron archivos PDF físicos para las facturas seleccionadas" }), { status: 404 })
+            return new NextResponse(JSON.stringify({ error: "No se pudieron generar los archivos PDF para las facturas seleccionadas" }), { status: 404 })
         }
+
 
         const zipBuffer = await zip.generateAsync({ type: "nodebuffer" })
 
