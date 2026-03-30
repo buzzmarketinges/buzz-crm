@@ -33,11 +33,15 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env*
 
-# vercel
 .vercel
+
+# databases and sqlite artifacts
+*.db
+*.db-journal
+*.db-shm
+*.db-wal
+/backups/
 
 # typescript
 *.tsbuildinfo
 next-env.d.ts
-
-.vercel
