@@ -1,4 +1,15 @@
-import { Document, Page, Text, View, StyleSheet, Font, Image } from '@react-pdf/renderer';
+import { Document, Page, Text, View, StyleSheet, Font, Image, Svg, Defs, LinearGradient, Stop, Rect, G } from '@react-pdf/renderer';
+
+// Register Montserrat Black (weight 900) from Google Fonts
+Font.register({
+    family: 'Montserrat',
+    fonts: [
+        {
+            src: 'https://fonts.gstatic.com/s/montserrat/v26/JTUHjIg1_i6t8kCHKm4532VJOt5-QNFgpCuM73w5aXp-p7K4KLg.woff2',
+            fontWeight: 900,
+        }
+    ]
+});
 
 // Using standard fonts for now to ensure stability
 const styles = StyleSheet.create({
@@ -11,21 +22,28 @@ const styles = StyleSheet.create({
     },
     // Banner
     banner: {
-        backgroundColor: '#ef4444', // Red
-        height: 50, // Reduced height (half of previous ~80)
+        height: 70,
+        marginBottom: 40,
+        position: 'relative',
+    },
+    bannerContent: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
         justifyContent: 'center',
         alignItems: 'center',
-        marginBottom: 40
     },
     logo: {
-        width: 120, // Slightly smaller to fit
+        width: 120,
         objectFit: 'contain',
     },
     bannerText: {
         color: '#FFFFFF',
-        fontSize: 24,
-        fontWeight: 'bold', // Helvetica bold
-        textTransform: 'none'
+        fontSize: 32,
+        fontFamily: 'Montserrat',
+        fontWeight: 900,
     },
     // Info Section
     infoContainer: {
@@ -202,15 +220,27 @@ export const InvoicePDF = ({ data }: InvoicePDFProps) => {
         <Document>
             <Page size="A4" style={styles.page}>
 
-                {/* --- RED BANNER HEADER --- */}
+                {/* --- GRADIENT BANNER HEADER --- */}
                 <View style={styles.banner}>
-                    {data.logoBase64 ? (
-                        <Image src={data.logoBase64} style={styles.logo} />
-                    ) : (
-                        <Text style={styles.bannerText}>
-                            {data.settings.commercialName || "BuzzMarketing"}
-                        </Text>
-                    )}
+                    {/* SVG gradient background - normal flow, fills banner height */}
+                    <Svg width={595} height={70}>
+                        <Defs>
+                            <LinearGradient id="bannerGrad" x1="0" y1="0" x2="1" y2="0">
+                                <Stop offset="0" stopColor="#3C80F6" stopOpacity={1} />
+                                <Stop offset="0.5" stopColor="#6B46FA" stopOpacity={1} />
+                                <Stop offset="1" stopColor="#9711FA" stopOpacity={1} />
+                            </LinearGradient>
+                        </Defs>
+                        <Rect x={0} y={0} width={595} height={70} fill="url('#bannerGrad')" />
+                    </Svg>
+                    {/* Logo / text rendered on top via absolute overlay */}
+                    <View style={styles.bannerContent}>
+                        {data.logoBase64 ? (
+                            <Image src={data.logoBase64} style={styles.logo} />
+                        ) : (
+                            <Text style={styles.bannerText}>nova.</Text>
+                        )}
+                    </View>
                 </View>
 
                 {/* --- INFO SECTION --- */}

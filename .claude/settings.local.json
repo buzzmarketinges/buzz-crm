@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(netstat -ano)",
+      "Bash(findstr \":3000 :3001\")",
+      "Bash(findstr LISTENING)",
+      "Bash(taskkill /PID 25216 /F)",
+      "Bash(cmd /c \"taskkill /PID 25216 /F\")",
+      "Bash(cmd /c \"taskkill /IM node.exe /F 2>&1\")",
+      "Bash(npm run:*)",
+      "Bash(npx prisma:*)"
+    ]
+  }
+}
