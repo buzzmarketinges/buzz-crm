@@ -60,7 +60,7 @@ export default function LoginPage() {
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <div className="space-y-2">
                             <Label htmlFor="email">Email</Label>
-                            <Input id="email" name="email" type="email" placeholder="info@buzzmarketing.es" required />
+                            <Input id="email" name="email" type="email" placeholder="info@novamarketing.es" required />
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="password">Contraseña</Label>

@@ -72,7 +72,7 @@ export default function ForgotPasswordPage() {
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <div className="space-y-2">
                             <Label htmlFor="email">Email</Label>
-                            <Input id="email" name="email" type="email" placeholder="info@buzzmarketing.es" required />
+                            <Input id="email" name="email" type="email" placeholder="info@novamarketing.es" required />
                         </div>
                         <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700" disabled={loading}>
                             {loading ? "Enviando..." : "Enviar Enlace"}
