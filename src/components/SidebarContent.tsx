@@ -2,9 +2,10 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { signOut } from "next-auth/react"
 import { cn } from "@/lib/utils"
 // Ensure you have lucide-react installed and it has Euro. If not, fallback or check availability.
-import { FileText, Users, Settings, Briefcase, Euro, LayoutDashboard, DollarSign, Folder, Calendar } from "lucide-react"
+import { FileText, Users, Settings, Briefcase, Euro, LayoutDashboard, DollarSign, Folder, Calendar, LogOut } from "lucide-react"
 
 import { Montserrat } from 'next/font/google'
 
@@ -36,7 +37,7 @@ export function SidebarContent({ onNavigate }: SidebarContentProps) {
             <div className="h-16 flex items-center px-6 border-b border-slate-800 shrink-0">
                 <div className="flex items-center gap-3 text-white">
                     {/* Icon removed as requesting */}
-                    <span className={cn("text-xl tracking-tight text-white", montserrat.className)}>BuzzMarketing</span>
+                    <span className={cn("text-xl tracking-tight text-white", montserrat.className)}>Nova Marketing</span>
                 </div>
             </div>
 
@@ -73,14 +74,22 @@ export function SidebarContent({ onNavigate }: SidebarContentProps) {
 
             {/* User Profile */}
             <div className="p-4 border-t border-slate-800 shrink-0">
-                <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-slate-800 cursor-pointer transition-colors">
-                    <div className="h-9 w-9 rounded-full bg-gradient-to-tr from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold text-xs ring-2 ring-slate-800">
+                <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-slate-800 transition-colors">
+                    <div className="h-9 w-9 rounded-full bg-gradient-to-tr from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold text-xs ring-2 ring-slate-800 shrink-0">
                         GU
                     </div>
                     <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium text-white truncate">Galos User</p>
                         <p className="text-xs text-slate-400 truncate">Pro Plan</p>
                     </div>
+                    <button
+                        type="button"
+                        onClick={() => signOut({ callbackUrl: "/login" })}
+                        title="Cerrar sesión"
+                        className="p-2 rounded-md text-slate-400 hover:text-white hover:bg-slate-700 transition-colors shrink-0"
+                    >
+                        <LogOut className="h-4 w-4" />
+                    </button>
                 </div>
             </div>
         </div>

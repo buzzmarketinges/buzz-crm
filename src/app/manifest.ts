@@ -2,9 +2,9 @@ import { MetadataRoute } from 'next'
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'BuzzMarketing CRM',
-    short_name: 'Buzz CRM',
-    description: 'Gestión y control de clientes de BuzzMarketing',
+    name: 'Nova Marketing CRM',
+    short_name: 'Nova CRM',
+    description: 'Gestión y control de clientes de Nova Marketing',
     start_url: '/',
     id: '/',
     display: 'standalone',

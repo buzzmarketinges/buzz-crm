@@ -48,7 +48,7 @@ export async function requestPasswordReset(email: string) {
         await transporter.sendMail({
             from: `"${settings.companyName}" <${settings.emailSmtpUser}>`,
             to: email,
-            subject: "Recuperación de Contraseña - BuzzMarketing CRM",
+            subject: "Recuperación de Contraseña - Nova Marketing CRM",
             html: `
                 <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
                     <h2>Recuperación de Contraseña</h2>

@@ -51,7 +51,7 @@ export default function LoginPage() {
                     <div className="h-12 w-12 bg-blue-600 rounded-xl flex items-center justify-center mb-4 shadow-lg shadow-blue-900/20">
                         <Euro className="h-7 w-7 text-white" />
                     </div>
-                    <CardTitle className="text-2xl font-bold text-slate-800">BuzzMarketing CRM</CardTitle>
+                    <CardTitle className="text-2xl font-bold text-slate-800">Nova Marketing CRM</CardTitle>
                     <CardDescription>
                         Introduce tus credenciales para acceder
                     </CardDescription>
