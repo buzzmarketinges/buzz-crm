@@ -119,6 +119,7 @@ export async function createCompany(formData: FormData) {
         taxId: formData.get("taxId") as string,
         address: formData.get("address") as string,
         billingEmail: formData.get("billingEmail") as string,
+        canaryTaxExempt: formData.get("canaryTaxExempt") === "on",
         settingsId: tenantId
     }
 
@@ -135,6 +136,7 @@ export async function updateCompany(id: string, formData: FormData) {
         taxId: formData.get("taxId") as string,
         address: formData.get("address") as string,
         billingEmail: formData.get("billingEmail") as string,
+        canaryTaxExempt: formData.get("canaryTaxExempt") === "on",
     }
 
     // Ensure company belongs to tenant

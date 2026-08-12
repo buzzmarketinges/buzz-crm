@@ -253,6 +253,12 @@ export function ClientDetailContent({ company, onUpdate, simulatedDate }: { comp
                                         <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Dirección Fiscal</label>
                                         <Textarea name="address" defaultValue={company.address || ""} className="bg-gray-50/50 border-gray-200 focus:bg-white transition-all shadow-none resize-none rounded-lg" rows={3} />
                                     </div>
+                                    <div className="flex items-center gap-2">
+                                        <Checkbox id="canaryTaxExempt" name="canaryTaxExempt" defaultChecked={company.canaryTaxExempt} />
+                                        <Label htmlFor="canaryTaxExempt" className="font-normal cursor-pointer text-sm">
+                                            No aplica IVA (Canarias, Ceuta y Melilla)
+                                        </Label>
+                                    </div>
                                 </div>
 
                                 <div className="pt-4 flex justify-end">

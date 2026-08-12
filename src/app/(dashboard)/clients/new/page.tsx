@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import { Checkbox } from "@/components/ui/checkbox"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
 import Link from "next/link"
 import { ChevronLeft } from "lucide-react"
@@ -45,6 +46,12 @@ export default function NewClientPage() {
                         <div className="space-y-2">
                             <Label htmlFor="address">Dirección Fiscal</Label>
                             <Textarea id="address" name="address" />
+                        </div>
+                        <div className="flex items-center gap-2 pt-2">
+                            <Checkbox id="canaryTaxExempt" name="canaryTaxExempt" />
+                            <Label htmlFor="canaryTaxExempt" className="font-normal cursor-pointer">
+                                No aplica IVA (Canarias, Ceuta y Melilla)
+                            </Label>
                         </div>
                     </CardContent>
                     <CardFooter className="flex justify-end gap-2">

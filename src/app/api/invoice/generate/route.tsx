@@ -58,10 +58,11 @@ export async function POST(req: NextRequest) {
         // Calculate Taxes
         let taxAmount = 0
         let withholdingAmount = 0
-        const taxRate = settings.taxEnabled ? Number(settings.taxRate) : 0
+        const applyTax = settings.taxEnabled && !company.canaryTaxExempt
+        const taxRate = applyTax ? Number(settings.taxRate) : 0
         const withholdingRate = settings.withholdingEnabled ? Number(settings.withholdingRate) : 0
 
-        if (settings.taxEnabled) {
+        if (applyTax) {
             taxAmount = subtotal * (taxRate / 100)
         }
 

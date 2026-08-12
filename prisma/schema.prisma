@@ -74,7 +74,8 @@ model Company {
   taxId           String    // CIF/NIF (Unique?)
   address         String?
   billingEmail    String    // Campo clave para emails
-  
+  canaryTaxExempt Boolean   @default(false) // No aplica IVA (Canarias, Ceuta y Melilla)
+
   contacts        Contact[]
   services        Service[]
   invoices        Invoice[]
