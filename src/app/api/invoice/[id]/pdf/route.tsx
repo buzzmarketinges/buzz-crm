@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import prisma from "@/lib/prisma"
-import fs from "fs"
+import { generateInvoicePdfBuffer } from "@/lib/invoice-pdf"
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
@@ -9,18 +9,11 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
             where: { id: id }
         })
 
-        if (!invoice || !invoice.pdfPath) {
-            return new NextResponse("Invoice not found or PDF missing", { status: 404 })
+        if (!invoice) {
+            return new NextResponse("Invoice not found", { status: 404 })
         }
 
-        if (!fs.existsSync(invoice.pdfPath)) {
-            return new NextResponse("PDF File not found on server disk", { status: 404 })
-        }
-
-        const fileBuffer = fs.readFileSync(invoice.pdfPath)
-
-        // Extract filename from path
-        // User requested ONLY invoice number as filename
+        const fileBuffer = await generateInvoicePdfBuffer(invoice.id)
         const filename = `${invoice.number}.pdf`
 
         return new NextResponse(fileBuffer, {
