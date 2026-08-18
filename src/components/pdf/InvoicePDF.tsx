@@ -71,6 +71,18 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         color: '#333333'
     },
+    rectificativaBadge: {
+        fontSize: 11,
+        fontWeight: 'bold',
+        color: '#7c3aed',
+        marginBottom: 6,
+        textTransform: 'uppercase'
+    },
+    rectificativaRef: {
+        fontSize: 9,
+        color: '#7c3aed',
+        marginBottom: 10
+    },
     infoValue: {
         flex: 1,
         fontSize: 10,
@@ -184,6 +196,9 @@ interface InvoicePDFProps {
         number: string
         date: string
         logoBase64?: string
+        isRectificativa?: boolean
+        rectifiesNumber?: string
+        rectifiesDate?: string
         company: {
             name: string
             businessName: string
@@ -247,10 +262,18 @@ export const InvoicePDF = ({ data }: InvoicePDFProps) => {
                 <View style={styles.infoContainer}>
                     {/* LEFT: Invoice & Client Data */}
                     <View style={styles.leftInfo}>
+                        {data.isRectificativa && (
+                            <Text style={styles.rectificativaBadge}>Factura Rectificativa</Text>
+                        )}
                         <View style={styles.infoRow}>
                             <Text style={styles.infoLabel}>Factura:</Text>
                             <Text style={styles.infoValue}>{data.number}</Text>
                         </View>
+                        {data.isRectificativa && data.rectifiesNumber && (
+                            <Text style={styles.rectificativaRef}>
+                                Rectifica a la factura {data.rectifiesNumber}{data.rectifiesDate ? ` de fecha ${data.rectifiesDate}` : ''}
+                            </Text>
+                        )}
                         <View style={styles.infoRow}>
                             <Text style={styles.infoLabel}>Fecha:</Text>
                             <Text style={styles.infoValue}>{data.date}</Text>
@@ -337,24 +360,24 @@ export const InvoicePDF = ({ data }: InvoicePDFProps) => {
                 <View style={{ marginTop: 20, marginRight: 40, alignItems: 'flex-end' }}>
 
                     {/* Breakdown Rows */}
-                    {(data.taxAmount || data.withholdingAmount) ? (
+                    {((data.taxRate ?? 0) > 0 || (data.withholdingRate ?? 0) > 0) ? (
                         <>
                             <View style={{ flexDirection: 'row', marginBottom: 4, width: 200, justifyContent: 'space-between' }}>
                                 <Text style={{ fontSize: 10, color: '#333' }}>Importe base</Text>
                                 <Text style={{ fontSize: 10, color: '#333' }}>{data.subtotal?.toFixed(2)} €</Text>
                             </View>
 
-                            {(data.withholdingAmount ?? 0) > 0 && (
+                            {(data.withholdingRate ?? 0) > 0 && (
                                 <View style={{ flexDirection: 'row', marginBottom: 4, width: 200, justifyContent: 'space-between' }}>
                                     <Text style={{ fontSize: 10, color: '#333' }}>Retención {data.withholdingRate?.toFixed(0)}%</Text>
-                                    <Text style={{ fontSize: 10, color: '#333' }}>-{data.withholdingAmount?.toFixed(2)} €</Text>
+                                    <Text style={{ fontSize: 10, color: '#333' }}>{(-(data.withholdingAmount ?? 0)).toFixed(2)} €</Text>
                                 </View>
                             )}
 
-                            {(data.taxAmount ?? 0) > 0 && (
+                            {(data.taxRate ?? 0) > 0 && (
                                 <View style={{ flexDirection: 'row', marginBottom: 4, width: 200, justifyContent: 'space-between' }}>
                                     <Text style={{ fontSize: 10, color: '#333' }}>IVA {data.taxRate?.toFixed(0)}%</Text>
-                                    <Text style={{ fontSize: 10, color: '#333' }}>{data.taxAmount?.toFixed(2)} €</Text>
+                                    <Text style={{ fontSize: 10, color: '#333' }}>{(data.taxAmount ?? 0) >= 0 ? '+' : ''}{data.taxAmount?.toFixed(2)} €</Text>
                                 </View>
                             )}
 

@@ -103,7 +103,11 @@ export async function getInvoice(id: string) {
         const tenantId = await getTenantId()
         const invoice = await prisma.invoice.findFirst({
             where: { id, settingsId: tenantId },
-            include: { company: true }
+            include: {
+                company: true,
+                rectifiesInvoice: { select: { id: true, number: true, issueDate: true } },
+                rectifiedBy: { select: { id: true, number: true, issueDate: true } }
+            }
         })
         return serializeInvoice(invoice)
     } catch (error) {
@@ -137,6 +141,89 @@ export async function toggleInvoiceArchive(id: string, isArchived: boolean) {
         return { success: true }
     } catch (error) {
         return { success: false, error: "Failed to update archive status" }
+    }
+}
+
+export async function createRectificativa(
+    originalInvoiceId: string,
+    items: { name: string, price: number, discount?: number, reason?: string }[]
+) {
+    try {
+        const tenantId = await getTenantId()
+
+        const original = await prisma.invoice.findFirst({
+            where: { id: originalInvoiceId, settingsId: tenantId },
+            include: { company: true }
+        })
+        if (!original) return { success: false, error: "Factura original no encontrada" }
+        if (original.isRectificativa) return { success: false, error: "No se puede rectificar una factura rectificativa" }
+
+        const settings = await prisma.settings.findUnique({ where: { id: tenantId } })
+        if (!settings) return { success: false, error: "Ajustes no encontrados" }
+
+        const finalItems = items.map(i => ({
+            name: i.reason ? `${i.name} (${i.reason})` : i.name,
+            price: Number(i.price),
+            discount: Number(i.discount || 0)
+        }))
+
+        const subtotal = finalItems.reduce((acc, item) => {
+            const finalPrice = item.discount > 0 ? item.price * ((100 - item.discount) / 100) : item.price
+            return acc + finalPrice
+        }, 0)
+
+        const applyTax = settings.taxEnabled && !original.company.canaryTaxExempt
+        const taxRate = applyTax ? Number(settings.taxRate) : 0
+        const taxAmount = applyTax ? subtotal * (taxRate / 100) : 0
+
+        const withholdingRate = settings.withholdingEnabled ? Number(settings.withholdingRate) : 0
+        const withholdingAmount = settings.withholdingEnabled ? subtotal * (withholdingRate / 100) : 0
+
+        const total = subtotal + taxAmount - withholdingAmount
+
+        const issueDate = settings.simulatedDate ? new Date(settings.simulatedDate) : new Date()
+        const year = issueDate.getFullYear()
+        let prefix = settings.rectificativaPrefix || "R"
+        prefix = prefix.replace(/%yyyy%/g, year.toString()).replace(/%yy%/g, year.toString().slice(-2))
+        const numberStr = settings.rectificativaNextNumber.toString().padStart(2, '0')
+        const invoiceFullNumber = `${prefix}${numberStr}`
+
+        const rectificativa = await prisma.invoice.create({
+            data: {
+                number: invoiceFullNumber,
+                companyId: original.companyId,
+                status: "CREATED",
+                subtotal,
+                taxRate,
+                taxAmount,
+                withholdingRate,
+                withholdingAmount,
+                totalAmount: total,
+                items: JSON.stringify(finalItems),
+                issueDate,
+                settingsId: tenantId,
+                isRectificativa: true,
+                rectifiesInvoiceId: original.id
+            }
+        })
+
+        await prisma.settings.update({
+            where: { id: tenantId },
+            data: { rectificativaNextNumber: { increment: 1 } }
+        })
+
+        await prisma.invoice.update({
+            where: { id: original.id },
+            data: { status: "RECTIFICADA" }
+        })
+
+        revalidatePath('/billing')
+        revalidatePath(`/invoices/${original.id}`)
+
+        return { success: true, id: rectificativa.id }
+    } catch (error) {
+        console.error("Error creating rectificativa:", error)
+        return { success: false, error: "Error al generar la factura rectificativa" }
     }
 }
 

@@ -312,6 +312,13 @@ export function SettingsContent({ settings }: { settings: any }) {
                                     </div>
                                     <MinimalInput label="Próximo Número" name="invoiceNextNumber" type="number" defaultValue={s.invoiceNextNumber || 1} />
                                 </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="space-y-1">
+                                        <MinimalInput label="Prefijo Rectificativa" name="rectificativaPrefix" defaultValue={s.rectificativaPrefix || "R"} />
+                                        <p className="text-xs text-gray-500">Variables: %yy% %yyyy%</p>
+                                    </div>
+                                    <MinimalInput label="Próximo Número Rectificativa" name="rectificativaNextNumber" type="number" defaultValue={s.rectificativaNextNumber || 1} />
+                                </div>
                                 <MinimalInput label="Ruta Guardado Local (PDF)" name="localSavePath" defaultValue={s.localSavePath || "C:/Facturas"} />
                                 <MinimalInput label="Objetivo Anual de Facturación (€)" name="yearlyGoal" type="number" defaultValue={s.yearlyGoal || 100000} />
                             </div>

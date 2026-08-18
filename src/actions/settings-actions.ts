@@ -101,6 +101,7 @@ export async function updateSettings(data: any) {
             ...data,
             emailSmtpPort: data.emailSmtpPort ? parseInt(data.emailSmtpPort.toString()) : undefined,
             invoiceNextNumber: data.invoiceNextNumber ? parseInt(data.invoiceNextNumber.toString()) : undefined,
+            rectificativaNextNumber: data.rectificativaNextNumber ? parseInt(data.rectificativaNextNumber.toString()) : undefined,
             simulatedDate: data.simulatedDate ? new Date(data.simulatedDate.toString()) : null,
             yearlyGoal: data.yearlyGoal ? Number(data.yearlyGoal) : undefined,
             isAdminMode: data.isAdminMode === 'on' || data.isAdminMode === 'true' || data.isAdminMode === true,

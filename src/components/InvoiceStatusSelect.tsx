@@ -59,6 +59,7 @@ export function InvoiceStatusSelect({ invoiceId, currentStatus, lastError }: Inv
             case 'PAID': return { label: 'PAGADO', color: 'bg-green-100 text-green-700 border-green-200 hover:bg-green-200', dot: 'bg-green-500' }
             case 'SENT': return { label: 'ENVIADO', color: 'bg-blue-100 text-blue-700 border-blue-200 hover:bg-blue-200', dot: 'bg-blue-500' }
             case 'ERROR': return { label: 'ERROR', color: 'bg-red-100 text-red-700 border-red-200 hover:bg-red-200 cursor-help', dot: 'bg-red-500' }
+            case 'RECTIFICADA': return { label: 'RECTIFICADA', color: 'bg-purple-100 text-purple-700 border-purple-200 hover:bg-purple-200', dot: 'bg-purple-500' }
             case 'CREATED': default: return { label: 'CREADO', color: 'bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-200', dot: 'bg-slate-500' }
         }
     }
@@ -102,7 +103,7 @@ export function InvoiceStatusSelect({ invoiceId, currentStatus, lastError }: Inv
 
             {isOpen && (
                 <div className="absolute top-full left-0 mt-2 w-40 bg-white rounded-xl shadow-xl border border-slate-100 py-1.5 z-50 animate-in fade-in zoom-in-95 duration-200 ease-out origin-top-left ring-1 ring-slate-900/5">
-                    {['CREATED', 'SENT', "PAID"].map((s) => {
+                    {['CREATED', 'SENT', "PAID", "RECTIFICADA"].map((s) => {
                         const info = getStatusInfo(s)
                         const isSelected = status === s
                         return (

@@ -9,7 +9,8 @@ export async function generateInvoicePdfBuffer(invoiceId: string) {
         where: { id: invoiceId },
         include: {
             company: true,
-            settings: true
+            settings: true,
+            rectifiesInvoice: { select: { number: true, issueDate: true } }
         }
     })
 
@@ -37,6 +38,9 @@ export async function generateInvoicePdfBuffer(invoiceId: string) {
         number: invoice.number,
         date: invoice.issueDate.toLocaleDateString('es-ES'),
         logoBase64: logoBase64,
+        isRectificativa: invoice.isRectificativa,
+        rectifiesNumber: invoice.rectifiesInvoice?.number,
+        rectifiesDate: invoice.rectifiesInvoice?.issueDate?.toLocaleDateString('es-ES'),
         company: {
             name: invoice.company.name,
             businessName: invoice.company.businessName,

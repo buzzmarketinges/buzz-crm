@@ -4,15 +4,17 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { InvoiceStatusSelect } from "@/components/InvoiceStatusSelect"
-import { Download, Mail, Building2, Calendar, CreditCard, Hash, Loader2, FileText, Check, AlertCircle } from "lucide-react"
+import { Download, Mail, Building2, Calendar, CreditCard, Hash, Loader2, FileText, Check, AlertCircle, RotateCcw } from "lucide-react"
 import { sendInvoiceEmail, getInvoiceEmailData } from "@/actions/email-actions"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import Link from "next/link"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
+import { cn } from "@/lib/utils"
 import { toast } from "sonner"
 
 interface InvoiceDetailContentProps {
@@ -37,6 +39,7 @@ export function InvoiceDetailContent({ invoice, onUpdate }: InvoiceDetailContent
 
     const router = useRouter()
     const items = (typeof invoice.items === 'string' ? JSON.parse(invoice.items) : invoice.items || []) as { name: string, price: number }[]
+    const canRectify = !invoice.isRectificativa && !(invoice.rectifiedBy && invoice.rectifiedBy.length > 0)
 
     const handleOpenEmailDialog = async () => {
         setIsEmailDialogOpen(true)
@@ -110,7 +113,24 @@ export function InvoiceDetailContent({ invoice, onUpdate }: InvoiceDetailContent
                             <Hash className="h-4 w-4" />
                         </div>
                         <div>
-                            <h2 className="text-lg font-bold text-slate-900">{invoice.number}</h2>
+                            <div className="flex items-center gap-2">
+                                <h2 className="text-lg font-bold text-slate-900">{invoice.number}</h2>
+                                {invoice.isRectificativa && (
+                                    <Badge className="bg-purple-100 text-purple-700 hover:bg-purple-100 border-purple-200">
+                                        FACTURA RECTIFICATIVA
+                                    </Badge>
+                                )}
+                            </div>
+                            {invoice.isRectificativa && invoice.rectifiesInvoice && (
+                                <Link href={`/invoices/${invoice.rectifiesInvoice.id}`} className="text-xs text-purple-600 hover:underline flex items-center gap-1 mt-0.5">
+                                    <RotateCcw className="h-3 w-3" /> Rectifica a factura {invoice.rectifiesInvoice.number}
+                                </Link>
+                            )}
+                            {!invoice.isRectificativa && invoice.rectifiedBy?.[0] && (
+                                <Link href={`/invoices/${invoice.rectifiedBy[0].id}`} className="text-xs text-purple-600 hover:underline flex items-center gap-1 mt-0.5">
+                                    <RotateCcw className="h-3 w-3" /> Rectificada por factura {invoice.rectifiedBy[0].number}
+                                </Link>
+                            )}
                         </div>
                     </div>
                     {/* Compact Status */}
@@ -121,12 +141,20 @@ export function InvoiceDetailContent({ invoice, onUpdate }: InvoiceDetailContent
             </div>
 
             {/* Actions */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className={cn("grid gap-4", canRectify ? "grid-cols-1 md:grid-cols-3" : "grid-cols-2")}>
                 <form action={`/api/invoice/${invoice.id}/pdf`} target="_blank">
                     <Button variant="outline" className="w-full h-12 border-slate-200 hover:bg-slate-50 hover:text-slate-900 justify-start px-4">
                         <Download className="mr-2 h-4 w-4" /> Descargar PDF
                     </Button>
                 </form>
+
+                {canRectify && (
+                    <Link href={`/billing/rectify/${invoice.id}`}>
+                        <Button variant="outline" className="w-full h-12 border-amber-200 text-amber-700 hover:bg-amber-50 hover:text-amber-800 justify-start px-4">
+                            <RotateCcw className="mr-2 h-4 w-4" /> Generar Rectificativa
+                        </Button>
+                    </Link>
+                )}
 
                 <Dialog open={isEmailDialogOpen} onOpenChange={setIsEmailDialogOpen}>
                     <DialogTrigger asChild>
@@ -349,7 +377,7 @@ export function InvoiceDetailContent({ invoice, onUpdate }: InvoiceDetailContent
                                         IVA ({Number(invoice.taxRate)}%)
                                     </td>
                                     <td className="px-6 py-2 text-right font-mono text-slate-600">
-                                        +{Number(invoice.taxAmount).toFixed(2)}€
+                                        {Number(invoice.taxAmount) >= 0 ? '+' : ''}{Number(invoice.taxAmount).toFixed(2)}€
                                     </td>
                                 </tr>
                             )}
@@ -358,10 +386,10 @@ export function InvoiceDetailContent({ invoice, onUpdate }: InvoiceDetailContent
                             {Number(invoice.withholdingRate) > 0 && (
                                 <tr>
                                     <td colSpan={3} className="px-6 py-2 text-right text-slate-500">
-                                        IRPF (-{Number(invoice.withholdingRate)}%)
+                                        IRPF ({Number(invoice.withholdingRate)}%)
                                     </td>
                                     <td className="px-6 py-2 text-right font-mono text-slate-600">
-                                        -{Number(invoice.withholdingAmount).toFixed(2)}€
+                                        {(-Number(invoice.withholdingAmount)).toFixed(2)}€
                                     </td>
                                 </tr>
                             )}

@@ -31,7 +31,11 @@ model Settings {
   // Configuración Factura
   invoicePrefix     String  @default("INV-")
   invoiceNextNumber Int     @default(1)
-  
+
+  // Configuración Factura Rectificativa
+  rectificativaPrefix     String @default("R")
+  rectificativaNextNumber Int    @default(1)
+
   // Impuestos (IVA / IRPF)
   taxEnabled        Boolean @default(false)
   taxRate           Decimal @default(21)
@@ -180,6 +184,12 @@ model Invoice {
   pdfPath       String?  // Ruta donde se guardó localmente
   lastError     String?  // Mensaje de error si el envío falló
   isArchived    Boolean  @default(false)
+
+  // Facturas Rectificativas
+  isRectificativa    Boolean   @default(false)
+  rectifiesInvoiceId String?
+  rectifiesInvoice   Invoice?  @relation("InvoiceRectifications", fields: [rectifiesInvoiceId], references: [id])
+  rectifiedBy        Invoice[] @relation("InvoiceRectifications")
 
   // Multi-tenancy
   settingsId      String    @default("default")
