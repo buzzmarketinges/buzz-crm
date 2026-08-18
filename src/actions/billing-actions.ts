@@ -127,6 +127,11 @@ export async function getPendingInvoices() {
                     }
                 }
 
+                // At this point finalPrice already reflects proration (if applied) but NOT discount yet.
+                // Keep it that way for the item: /api/invoice/generate applies `discount` itself,
+                // so pre-applying it here would double-discount the invoice.
+                const itemPrice = finalPrice
+
                 const discount = service.discount || 0
                 if (discount > 0) {
                     finalPrice = finalPrice * ((100 - discount) / 100)
@@ -135,7 +140,7 @@ export async function getPendingInvoices() {
                 entry.items.push({
                     serviceId: service.id,
                     name: displayName,
-                    price: Number(service.price),
+                    price: itemPrice,
                     discount: discount,
                     type: service.type
                 })
